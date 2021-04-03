@@ -1,0 +1,13 @@
+{
+	"skds_core": "SKDS Core",
+	"wpo": "Water Physics Overhaul",
+
+
+	"block.wpo.pipe": "Pipe",
+	"block.wpo.pipe_pump": "Pipeline pump",
+	"block.wpo.pump": "Pump",
+	"block.wpo.gate": "Flood gate",
+
+	"item.wpo.advanced_bucket": "Bucket with a fluid",
+	"itemGroup.WPO": "Water Physics Overhaul"
+}

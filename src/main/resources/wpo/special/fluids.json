@@ -1,0 +1,36 @@
+{
+	"BlockLists": {
+		"defaultPass": [
+			"minecraft:repeater",
+			"minecraft:snow",
+			"minecraft:comparator",
+			"#minecraft:carpets",
+			"#minecraft:leaves"
+		],
+		"defaultNoPass": [
+			"minecraft:hopper",
+			"minecraft:piston",
+			"minecraft:sticky_piston",
+			"minecraft:piston_head",
+			"minecraft:moving_piston"
+		],
+		"defaultNoLava": [
+			"#minecraft:wool"
+		]
+	},
+	"PropertyLists": {
+		"defaultPass": {
+			"isPassable": 1
+		},
+		"defaultNoLava": {
+			"isPassable": 0,
+			"destroyableByFluids": [
+				"minecraft:lava",
+				"minecraft:flowing_lava"
+			]
+		},
+		"defaultNoPass": {
+			"isPassable": -1
+		}
+	}
+}

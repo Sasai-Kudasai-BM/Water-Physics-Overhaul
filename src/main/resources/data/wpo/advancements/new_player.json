@@ -1,0 +1,15 @@
+{
+    "criteria": {
+        "start": {
+            "trigger": "minecraft:tick"
+        }
+    },
+    "rewards": {
+        "recipes": [
+            "wpo:gate",
+            "wpo:pump",
+            "wpo:pump2",
+            "wpo:pipe"
+        ]
+    }
+}

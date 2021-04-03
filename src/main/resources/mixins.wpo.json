@@ -1,0 +1,33 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.skds.wpo.mixins",
+  "target": "@env(DEFAULT)",  
+  "refmap": "mixins.wpo.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+
+    "other.BoatEntityMixin",
+    "other.FallingBlockEntityMixin",
+
+    "fluids.WaterFluidMixin",
+    "fluids.FlowingFluidMixin",
+    "fluids.FlowingFluidBlockMixin",
+
+
+    "block.ExtraWLBlockMixin",
+    "block.BaseWLMixin",
+    "block.AbstractBlockStateMixin",
+
+    "item.GlassBottleItemMixin"
+
+  ],
+  "client": [
+    "fluids.FluidBlockRendererMixin"
+  ],
+  "server": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

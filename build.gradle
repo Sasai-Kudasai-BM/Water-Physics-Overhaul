@@ -1,0 +1,61 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { 
+            name = 'forge'
+            url = 'https://files.minecraftforge.net/maven' 
+        }
+        maven {
+           name = 'sponge'
+           url = 'https://repo.spongepowered.org/maven'
+        }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.spongepowered.mixin'
+
+version = '0.1.0'
+group = 'net.skds.wpo'
+archivesBaseName = 'water_physics_overhaul'
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+
+println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+minecraft {
+
+    mappings channel: 'snapshot', version: '20201028-1.16.3'
+
+}
+
+configurations {
+    embed
+    compile.extendsFrom(embed)
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.16.5-36.0.14'
+    embed('org.spongepowered:mixin:0.8.2') { transitive = false }
+    compile fg.deobf(fileTree(dir: 'lib', include: ['*.jar']))
+}
+
+jar {
+    manifest {
+        attributes([
+            "MixinConfigs": "mixins.wpo.json",
+            "Implementation-Title": project.name,
+            "Implementation-Version": "${version}",
+        ])
+    }
+}
+
+//jar.finalizedBy('reobfJar') 
+
+mixin {
+    add sourceSets.main, 'mixins.wpo.refmap.json'
+}
