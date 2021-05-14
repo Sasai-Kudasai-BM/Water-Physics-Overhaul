@@ -18,6 +18,7 @@
     "block.ExtraWLBlockMixin",
     "block.BaseWLMixin",
     "block.AbstractBlockStateMixin",
+    "block.BlockMixin",
 
     "item.GlassBottleItemMixin"
 

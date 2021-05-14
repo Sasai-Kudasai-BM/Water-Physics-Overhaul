@@ -22,6 +22,7 @@ import net.minecraft.block.TrapDoorBlock;
 import net.minecraft.block.TrappedChestBlock;
 import net.minecraft.block.WallSignBlock;
 import net.minecraft.state.StateContainer;
+import net.minecraft.state.properties.BlockStateProperties;
 import net.skds.wpo.registry.BlockStateProps;
 import net.skds.wpo.util.interfaces.IBaseWL;
 
@@ -29,9 +30,18 @@ import net.skds.wpo.util.interfaces.IBaseWL;
 		LanternBlock.class, ChainBlock.class, StairsBlock.class, WallSignBlock.class, StandingSignBlock.class,
 		LadderBlock.class, AbstractCoralPlantBlock.class, SeaPickleBlock.class, ChestBlock.class,
 		TrappedChestBlock.class, EnderChestBlock.class, ScaffoldingBlock.class, ConduitBlock.class })
-public class BaseWLMixin implements IBaseWL {
+public class BaseWLMixin extends Block implements IBaseWL {
+
+	public BaseWLMixin(Properties properties) {
+		super(properties);
+	}
 
 	protected void customStatesRegister(Block b, StateContainer.Builder<Block, BlockState> builder) {
 		builder.add(BlockStateProps.FFLUID_LEVEL);
+	}
+
+	@Override
+	public void fixDS() {
+		this.setDefaultState(this.getDefaultState().with(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)));
 	}
 }

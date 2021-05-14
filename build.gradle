@@ -20,7 +20,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '0.1.0'
+version = '0.1.1'
 group = 'net.skds.wpo'
 archivesBaseName = 'water_physics_overhaul'
 
