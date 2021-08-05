@@ -14,9 +14,8 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunk;
 import net.minecraft.world.server.ChunkHolder;
 import net.minecraft.world.server.ServerWorld;
-import net.skds.core.api.IWWSG;
 import net.skds.core.util.blockupdate.BasicExecutor;
-import net.skds.core.util.blockupdate.UpdateTask;
+import net.skds.core.util.blockupdate.WWSGlobal;
 import net.skds.wpo.WPOConfig;
 import net.skds.wpo.util.interfaces.IFlowingFluid;
 
@@ -37,7 +36,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 	protected BlockState state;
 
 	protected FFluidBasic(ServerWorld w, BlockPos pos, Mode mode, WorldWorkSet owner, int worker) {
-		super(w, FFluidBasic::updater, owner);
+		super(w, owner);
 		this.castOwner = owner;
 		this.worker = worker;
 		this.w = w;
@@ -50,8 +49,6 @@ public abstract class FFluidBasic extends BasicExecutor {
 		this.level = fs.getLevel();
 	}
 
-	public static void updater(UpdateTask task, ServerWorld world) {
-	}
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -128,7 +125,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 		if (level > 0 && (fluid instanceof FlowingFluid)) {
 			execute();
 		}
-		IWWSG wwsg = owner.getG();
+		WWSGlobal wwsg = owner.getG();
 		banPoses.forEach(p -> wwsg.unbanPos(p.toLong()));
 	}
 

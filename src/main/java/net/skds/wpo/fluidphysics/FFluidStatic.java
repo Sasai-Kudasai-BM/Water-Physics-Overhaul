@@ -63,8 +63,8 @@ import net.skds.wpo.registry.BlockStateProps;
 import net.skds.wpo.util.ExtendedFHIS;
 import net.skds.wpo.util.interfaces.IBaseWL;
 import net.skds.core.api.IBlockExtended;
-import net.skds.core.api.IWWSG;
 import net.skds.core.api.IWorldExtended;
+import net.skds.core.util.blockupdate.WWSGlobal;
 import net.skds.wpo.util.pars.FluidPars;
 
 public class FFluidStatic {
@@ -660,7 +660,7 @@ public class FFluidStatic {
 		boolean frst = true;
 		boolean client = false;
 		World w = actioner.getWorld();
-		IWWSG wws = ((IWorldExtended) w).getWWS();
+		WWSGlobal wws = ((IWorldExtended) w).getWWS();
 		Set<BlockPos> setBan = new HashSet<>();
 		Set<BlockPos> setAll = new HashSet<>();
 		client = wws == null;

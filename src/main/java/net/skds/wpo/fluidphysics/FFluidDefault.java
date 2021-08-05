@@ -10,7 +10,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
-import net.skds.core.api.IWWSG;
+import net.skds.core.util.blockupdate.WWSGlobal;
 import net.skds.wpo.WPOConfig;
 
 public class FFluidDefault extends FFluidBasic {
@@ -198,7 +198,7 @@ public class FFluidDefault extends FFluidBasic {
 			// castOwner.addEQTask(pos.toLong(), (FlowingFluid) fluid);
 
 			banPoses.remove(pos);
-			IWWSG wwsg = owner.getG();
+			WWSGlobal wwsg = owner.getG();
 			banPoses.forEach(p -> wwsg.unbanPos(p.toLong()));
 			banPoses.clear();
 			banPoses.add(pos);

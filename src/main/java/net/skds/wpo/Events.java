@@ -8,10 +8,10 @@ import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.PistonEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.skds.core.api.IWWSG;
 import net.skds.core.events.OnWWSAttachEvent;
 import net.skds.core.events.SyncTasksHookEvent;
 import net.skds.core.multithreading.ThreadProvider;
+import net.skds.core.util.blockupdate.WWSGlobal;
 import net.skds.wpo.fluidphysics.FFluidStatic;
 import net.skds.wpo.fluidphysics.WorldWorkSet;
 import net.skds.wpo.util.pars.ParsApplier;
@@ -40,7 +40,7 @@ public class Events {
 
 	@SubscribeEvent
 	public void onWWSAttach(OnWWSAttachEvent e) {
-		IWWSG wwsg = e.getWWS();
+		WWSGlobal wwsg = e.getWWS();
 		World w = e.getWorld();
 		if (!w.isRemote) {
 			WorldWorkSet w1 = new WorldWorkSet((ServerWorld) w, wwsg);

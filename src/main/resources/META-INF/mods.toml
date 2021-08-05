@@ -61,6 +61,6 @@ Is it really needed?
 [[dependencies.wpo]]
     modId="skds_core"
     mandatory=true
-    versionRange="[0.0.1,0.2.0)"
+    versionRange="[0.2.0,0.3.0)"
     ordering="NONE"
     side="BOTH"

@@ -13,13 +13,13 @@ import net.minecraft.world.server.ServerTickList;
 import net.minecraft.world.server.ServerWorld;
 import net.skds.core.Events;
 import net.skds.core.api.IWWS;
-import net.skds.core.api.IWWSG;
 import net.skds.core.api.multithreading.ITaskRunnable;
 import net.skds.core.multithreading.MTHooks;
+import net.skds.core.util.blockupdate.WWSGlobal;
 import net.skds.wpo.util.TaskBlocker;
 
 public class WorldWorkSet implements IWWS {
-	public final IWWSG glob;
+	public final WWSGlobal glob;
 	public final ServerWorld world;
 
 	public ConcurrentSet<Long> excludedTasks = new ConcurrentSet<>();
@@ -43,7 +43,7 @@ public class WorldWorkSet implements IWWS {
 	private static ConcurrentSkipListSet<FluidTask> TASKS = new ConcurrentSkipListSet<>(comp);
 	private static ConcurrentLinkedQueue<FluidTask> DELAYED_TASKS = new ConcurrentLinkedQueue<>();
 
-	public WorldWorkSet(ServerWorld w, IWWSG owner) {
+	public WorldWorkSet(ServerWorld w, WWSGlobal owner) {
 		world = (ServerWorld) w;
 		glob = owner;
 	}
@@ -150,7 +150,7 @@ public class WorldWorkSet implements IWWS {
 	}
 
 	@Override
-	public IWWSG getG() {
+	public WWSGlobal getG() {
 		return glob;
 	}
 }
