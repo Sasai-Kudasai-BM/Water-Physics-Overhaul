@@ -78,6 +78,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 			castOwner.excludedTasks.add(longpos);
 		}
 		synchronized (world) {
+
 			if (fluid != Fluids.EMPTY && !oldState.isAir() && !fluid.isEquivalentTo(oldState.getFluidState().getFluid())
 					&& !(oldState.getBlock() instanceof IWaterLoggable)) {
 				((IFlowingFluid) fluid).beforeReplacingBlockCustom(world, pos, oldState);
@@ -108,10 +109,8 @@ public abstract class FFluidBasic extends BasicExecutor {
 
 		}
 
-		if ((newState.getFluidState().isEmpty() ^ oldState.getFluidState().isEmpty())
-				&& (newState.getOpacity(world, pos) != oldState.getOpacity(world, pos)
-						|| newState.getLightValue(world, pos) != oldState.getLightValue(world, pos)
-						|| newState.isTransparent() || oldState.isTransparent())) {
+		if (newState.getFluidState().isEmpty() ^ oldState.getFluidState().isEmpty()
+						&& (newState.getLightValue(world, pos) != oldState.getLightValue(world, pos))) {
 			world.getChunkProvider().getLightManager().checkBlock(pos);
 		}
 	}

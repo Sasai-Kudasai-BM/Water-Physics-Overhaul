@@ -205,6 +205,10 @@ public class FFluidStatic {
 
 	public static Vector3d getVel(IBlockReader w, BlockPos pos, FluidState fs) {
 
+		if (true) {
+			//return Vector3d.ZERO;
+		}
+		
 		Vector3d vel = new Vector3d(0, 0, 0);
 		int level = fs.getLevel();
 		BlockState state = fs.getBlockState();

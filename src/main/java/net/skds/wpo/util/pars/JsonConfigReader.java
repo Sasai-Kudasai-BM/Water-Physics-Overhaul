@@ -37,7 +37,7 @@ public class JsonConfigReader {
 
 	File fileF;
 
-	File dir = new File(System.getProperty("user.dir") + "\\config\\" + WPO.MOD_ID);
+	File dir = new File("config/" + WPO.MOD_ID);
 	Set<Map.Entry<String, JsonElement>> blockListSet = new HashSet<>();
 	Set<Map.Entry<String, JsonElement>> propertyListSet = new HashSet<>();
 	Map<String, JsonElement> propertyListMap = new HashMap<>();

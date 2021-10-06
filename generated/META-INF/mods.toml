@@ -6,7 +6,7 @@
 # The name of the mod loader type to load - for regular FML @Mod mods it should be javafml
 modLoader="javafml" #mandatory
 # A version range to match for said mod loader - for regular FML @Mod it will be the forge version
-loaderVersion="[34,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
+loaderVersion="[36,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
 # The license for you mod. This is mandatory metadata and allows for easier comprehension of your redistributive properties.
 # Review your options at https://choosealicense.com/. All rights reserved is the default copyright stance, and is thus the default here.
 license="All rights reserved"
@@ -16,8 +16,8 @@ license="All rights reserved"
 [[mods]] #mandatory
 # The modid of the mod
 modId="wpo" #mandatory
-# The version number of the mod - there's a few well known ${} variables useable here or just hardcode it
-version="${file.jarVersion}" #mandatory
+# The version number of the mod - there's a few well known null variables useable here or just hardcode it
+version="0.3.0" #mandatory
  # A display name for the mod
 displayName="Water Physics Overhaul" #mandatory
 # A URL to query for updates for this mod. See the JSON update specification <here>
@@ -25,7 +25,7 @@ displayName="Water Physics Overhaul" #mandatory
 # A URL for the "homepage" for this mod, displayed in the mod UI
 #displayURL="" #optional
 # A file name (in the root of the mod JAR) containing a logo for display
-logoFile="assets.wpo.png" #optional
+#logoFile="assets.skds_core.png" #optional
 # A text field displayed in the mod UI
 credits="Thanks for me and me and... also me <3" #optional
 # A text field displayed in the mod UI
@@ -45,7 +45,7 @@ Is it really needed?
     # Does this dependency have to exist - if not, ordering below must be specified
     mandatory=true #mandatory
     # The version range of the dependency
-    versionRange="[34,)" #mandatory
+    versionRange="[36,)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT or SERVER
@@ -54,13 +54,13 @@ Is it really needed?
 [[dependencies.wpo]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16.3,1.17)"
+    versionRange="[1.16.5,1.17)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.wpo]]
+[[dependencies.skds_core]]
     modId="skds_core"
     mandatory=true
-    versionRange="[0.2.0,0.3.0)"
+    versionRange="[0.2,0.3)"
     ordering="NONE"
     side="BOTH"

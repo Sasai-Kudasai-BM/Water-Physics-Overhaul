@@ -14,7 +14,7 @@ public class ParsApplier {
 	public static void applyFluidPars(ParsGroup<FluidPars> FG) {
 		for (Block b : FG.blocks) {
 			CustomBlockPars pars = ((IBlockExtended) b).getCustomBlockPars();
-			pars.put(FluidPars.class, FG.param);
+			pars.put(FG.param);
 		}
 	}
 
@@ -27,7 +27,7 @@ public class ParsApplier {
 		LOGGER.info("Cleaning blocks...");
 
 		ForgeRegistries.BLOCKS.getValues().forEach(block -> {
-			((IBlockExtended) block).setCustomBlockPars(new CustomBlockPars());
+			((IBlockExtended) block).getCustomBlockPars().clear(FluidPars.class);
 		});
 
 		LOGGER.info("Reading fluid configs...");

@@ -32,7 +32,7 @@ public class WPOConfig {
     }
 
     public static void init() {
-        File dir = new File(System.getProperty("user.dir") + "\\config\\" + WPO.MOD_ID);        
+        File dir = new File("config/" + WPO.MOD_ID);        
 		dir.mkdir();
         ModLoadingContext.get().registerConfig(Type.COMMON, SPEC, WPO.MOD_ID + "/common.toml");
         //ModLoadingContext.get().registerConfig(Type.COMMON, SPEC_WL, PhysEX.MOD_ID + "/waterlogged.toml");

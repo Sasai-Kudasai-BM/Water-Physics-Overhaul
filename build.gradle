@@ -1,8 +1,8 @@
 buildscript {
 	repositories {
-    	flatDir {
-    	    dirs 'libs'
-    	}
+		flatDir {
+			dirs 'libs'
+		}
 		jcenter()
 		maven { 
 			name = 'forge'
@@ -16,7 +16,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+		classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.+', changing: true
 		classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
 	}
 }
@@ -29,9 +29,10 @@ version = "${project.modVersion}"
 group = 'net.skds.' + project.modId
 archivesBaseName = project.modId + "-${project.minecraft}"
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+//sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
-println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+
 minecraft {
 
 	mappings channel: 'snapshot', version: '20201028-1.16.3'
@@ -41,9 +42,9 @@ minecraft {
 			workingDirectory project.file('run')
 			arg "--mixin"
 			arg "mixins." + project.modId + ".json"
-			arg "--username=Dev"
+			arg "--username=Sasai_Kudasai_BM"
 			jvmArgs "-Xmx3G"
-			jvmArgs "-XX:+UseConcMarkSweepGC"
+			//jvmArgs "-XX:+UseConcMarkSweepGC"
 			property "mixin.debug.export", "true"
 			property "mixin.debug", "true"
 			property "mixin.env.disableRefMap", "true"
@@ -59,11 +60,9 @@ minecraft {
 		server {
 			workingDirectory project.file('run')
 			arg '--mixin mixins.' + project.modId + '.json'
-			arg "--username=Dev"
+			arg "--username=Sasai_Kudasai_BM"
 			jvmArgs "-Xmx3G"
-			jvmArgs "-XX:+UseConcMarkSweepGC"
-			property "mixin.debug.export", "true"
-			property "mixin.debug", "true"
+			//jvmArgs "-XX:+UseConcMarkSweepGC"
 			property "mixin.env.disableRefMap", "true"
 			property 'forge.logging.console.level', 'info'
 			property 'terminal.ansi', 'true'
@@ -84,13 +83,60 @@ configurations {
 
 dependencies {
 	minecraft 'net.minecraftforge:forge:1.16.5-36.0.14'
-	embed('org.spongepowered:mixin:0.8.2') { transitive = false }	
-	compile fileTree(dir: 'libs', include: ['*.jar'])
+	embed('org.spongepowered:mixin:0.8.3') { transitive = false }
+	annotationProcessor 'org.spongepowered:mixin:0.8.3:processor'
+	implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
+sourceSets {
+	main {
+		resources {
+			srcDirs 'src/main/resources'
+			srcDirs 'generated'
+			exclude 'META-INF/mods-dev.toml'
+		}
+	}
+}
 
-jar {
-	manifest {
+def modsTomlSpec = copySpec {
+	from('src/main/resources') {
+		include 'META-INF/mods-dev.toml'
+		rename('(.*)mods-dev(.*)','mods.toml')
+		expand 'version': project.version,
+				'ForgeVR': project.ForgeVR,
+				'MCVR': project.MCVR,
+				'modId': project.modId,
+				'modName': project.modName,
+				'coreVR': project.coreVR
+	}
+}
+
+def buildPaths = [
+	"$rootDir/generated",
+	"$rootDir/bin/main",
+	"$rootDir/build/resources/main"
+]
+
+task replaceResources {
+	copy {
+		duplicatesStrategy 'include'
+		outputs.upToDateWhen { false }
+		with modsTomlSpec
+		into processResources.destinationDir
+	}
+	buildPaths.each { path ->
+		copy {
+			duplicatesStrategy 'include'
+			outputs.upToDateWhen { false }
+			with modsTomlSpec
+			into path
+		}
+		
+	}
+}
+
+project.tasks.withType(Jar) { jarTask -> 
+	jarTask.manifest {
 		attributes([
 			"MixinConfigs": 'mixins.' + project.modId + '.json',
 			"Specification-Title": project.name,
@@ -100,28 +146,19 @@ jar {
 	}
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
+processResources {
+	finalizedBy replaceResources
 }
 
 task deobfJar(type:Jar) {
-    from sourceSets.main.output
-    classifier 'deobf'
+	from sourceSets.main.output
+	classifier 'deobf'
 }
 
 artifacts {
-    archives sourcesJar
-    archives javadocJar
-    archives deobfJar
+	archives deobfJar
 }
 
-//jar.finalizedBy('reobfJar') 
 
 mixin {
 	add sourceSets.main, 'mixins.' + project.modId + '.refmap.json'
