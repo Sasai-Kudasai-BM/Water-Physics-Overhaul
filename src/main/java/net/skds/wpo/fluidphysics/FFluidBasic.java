@@ -49,7 +49,6 @@ public abstract class FFluidBasic extends BasicExecutor {
 		this.level = fs.getLevel();
 	}
 
-
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void applyAction(BlockPos pos, BlockState newState, BlockState oldState, ServerWorld world) {
@@ -83,34 +82,24 @@ public abstract class FFluidBasic extends BasicExecutor {
 					&& !(oldState.getBlock() instanceof IWaterLoggable)) {
 				((IFlowingFluid) fluid).beforeReplacingBlockCustom(world, pos, oldState);
 			}
-			// world.markBlockRangeForRenderUpdate(pos, oldState, newState);
 
-			if (chunk.getLocationType() != null
-					&& chunk.getLocationType().isAtLeast(ChunkHolder.LocationType.TICKING)) {
-				world.notifyBlockUpdate(pos, oldState, newState, 3);
+			world.notifyBlockUpdate(pos, oldState, newState, 3);
+			
+			ChunkHolder.LocationType status = chunk.getLocationType();
+
+			if (status != null && status.isAtLeast(ChunkHolder.LocationType.ENTITY_TICKING)) {
+				world.notifyNeighborsOfStateChange(pos, block);
+				if (state.hasComparatorInputOverride()) {
+					world.updateComparatorOutputLevel(pos, block);
+				}
+				newState.updateNeighbours(world, pos, 0);
+				newState.onBlockAdded(world, pos, oldState, false);
 			}
-
-			world.notifyNeighborsOfStateChange(pos, block);
-			if (state.hasComparatorInputOverride()) {
-				world.updateComparatorOutputLevel(pos, block);
-			}
-
-			// world.onBlockStateChange(pos, oldState, newState);
-
-			newState.updateNeighbours(world, pos, 0);
-
-			newState.onBlockAdded(world, pos, oldState, false);
-
-			// ServerTickList<Fluid> stl = world.getPendingFluidTicks();
-			// if (oldState.getFluidState().getFluid() != fluid) {
-			// stl.scheduleTick(pos, fluid, FFluidStatic.getTickRate((FlowingFluid) fluid,
-			// world));
-			// }
 
 		}
 
 		if (newState.getFluidState().isEmpty() ^ oldState.getFluidState().isEmpty()
-						&& (newState.getLightValue(world, pos) != oldState.getLightValue(world, pos))) {
+				&& (newState.getLightValue(world, pos) != oldState.getLightValue(world, pos))) {
 			world.getChunkProvider().getLightManager().checkBlock(pos);
 		}
 	}
