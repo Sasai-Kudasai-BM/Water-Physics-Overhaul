@@ -83,8 +83,8 @@ configurations {
 
 dependencies {
 	minecraft 'net.minecraftforge:forge:1.16.5-36.0.14'
-	embed('org.spongepowered:mixin:0.8.3') { transitive = false }
-	annotationProcessor 'org.spongepowered:mixin:0.8.3:processor'
+	embed('org.spongepowered:mixin:0.8.4') { transitive = false }
+	annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
 	implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 

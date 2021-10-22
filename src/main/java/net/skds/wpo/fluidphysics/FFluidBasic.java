@@ -10,6 +10,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunk;
 import net.minecraft.world.server.ChunkHolder;
@@ -51,7 +52,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	protected void applyAction(BlockPos pos, BlockState newState, BlockState oldState, ServerWorld world) {
+	protected void applyAction(BlockPos pos, BlockState newState, BlockState oldState, World world) {
 		if (newState == oldState) {
 			return;
 		}
