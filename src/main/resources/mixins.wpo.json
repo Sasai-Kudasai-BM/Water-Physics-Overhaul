@@ -16,7 +16,10 @@
     "fluids.FlowingFluidBlockMixin",
 
 
-    "world.WorldMixin",
+    "block.ExtraWLBlockMixin",
+    "block.BaseWLMixin",
+    "block.AbstractBlockStateMixin",
+    "block.BlockMixin",
 
     "item.GlassBottleItemMixin"
 

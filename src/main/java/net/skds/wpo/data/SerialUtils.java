@@ -17,13 +17,13 @@ import net.skds.wpo.WPO;
 
 public class SerialUtils {
 
-	//public static FluidStateContainer readFluidStateC(CompoundNBT tag) {
-	//	FluidState fs = readFluidState(tag);
-	//	if (fs == null) {
-	//		return FluidStateContainer.EMPTY;
-	//	}
-	//	return new FluidStateContainer(fs);
-	//}
+	public static FluidStateContainer readFluidStateC(CompoundNBT tag) {
+		FluidState fs = readFluidState(tag);
+		if (fs == null) {
+			return FluidStateContainer.EMPTY;
+		}
+		return new FluidStateContainer(fs);
+	}
 
 	public static FluidState readFluidState(CompoundNBT tag) {
 		if (!tag.contains("Name", 8)) {
@@ -31,7 +31,7 @@ public class SerialUtils {
 		} else {
 			String name = tag.getString("Name");
 			if (name.equals("undefined")) {
-				return FluidStateContainer.EMPTY;
+				return null;
 			}
 			Fluid fluid = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(name));
 			FluidState fluidState = fluid.getDefaultState();
@@ -51,13 +51,13 @@ public class SerialUtils {
 		}
 	}
 
-	//public static CompoundNBT writeFluidStateC(FluidStateContainer fsc) {
-	//	return writeFluidState(fsc.state);
-	//}
+	public static CompoundNBT writeFluidStateC(FluidStateContainer fsc) {
+		return writeFluidState(fsc.state);
+	}
 
 	public static CompoundNBT writeFluidState(FluidState fs) {
 		CompoundNBT compoundnbt = new CompoundNBT();
-		if (fs == FluidStateContainer.EMPTY) {
+		if (fs == null) {
 			compoundnbt.putString("Name", "undefined");
 		} else {
 			compoundnbt.putString("Name", ForgeRegistries.FLUIDS.getKey(fs.getFluid()).toString());

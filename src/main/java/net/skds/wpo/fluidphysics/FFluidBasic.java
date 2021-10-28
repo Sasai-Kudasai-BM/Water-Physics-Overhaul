@@ -68,13 +68,14 @@ public abstract class FFluidBasic extends BasicExecutor {
 			for (Direction dir : Direction.Plane.HORIZONTAL) {
 				BlockPos posu2 = posu.offset(dir);
 				if (!getBlockState(posu2).getFluidState().isEmpty()) {
-					WorldWorkSet.pushTask(new FluidTask(castOwner, posu2.toLong(), 5));
+					WorldWorkSet.pushTask(new FluidTask.DefaultTask(castOwner, posu2.toLong()));
 				}
 			}
 		}
 
 		Fluid fluid = newState.getFluidState().getFluid();
 		if (fluid != Fluids.EMPTY) {
+			castOwner.excludedTasks.add(longpos);
 		}
 		synchronized (world) {
 
@@ -269,7 +270,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 	protected void addPassedEq(BlockPos addPos) {
 		long l = addPos.toLong();
 		castOwner.addEqLock(l);
-		//castOwner.addNTTask(l, FFluidStatic.getTickRate((FlowingFluid) fluid, w));
+		castOwner.addNTTask(l, FFluidStatic.getTickRate((FlowingFluid) fluid, w));
 	}
 
 	protected boolean isPassedEq(BlockPos isPos) {

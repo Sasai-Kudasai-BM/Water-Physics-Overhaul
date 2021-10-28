@@ -1,11 +1,7 @@
 package net.skds.wpo;
 
-import com.mojang.brigadier.CommandDispatcher;
-
-import net.minecraft.command.CommandSource;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TagsUpdatedEvent;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.world.BlockEvent;
@@ -16,7 +12,6 @@ import net.skds.core.events.OnWWSAttachEvent;
 import net.skds.core.events.SyncTasksHookEvent;
 import net.skds.core.multithreading.ThreadProvider;
 import net.skds.core.util.blockupdate.WWSGlobal;
-import net.skds.wpo.commands.SetFluidCommand;
 import net.skds.wpo.fluidphysics.FFluidStatic;
 import net.skds.wpo.fluidphysics.WorldWorkSet;
 import net.skds.wpo.util.pars.ParsApplier;
@@ -32,13 +27,6 @@ public class Events {
 	// public void attachCapability(AttachCapabilitiesEvent<Chunk> e) {
 	// new ChunkDataProvider().init(e);
 	// }
-
-
-	@SubscribeEvent
-	public void registerCommands(RegisterCommandsEvent event) {
-		CommandDispatcher<CommandSource> dispatcher = event.getDispatcher();
-		dispatcher.register(SetFluidCommand.create());
-	}
 
 	@SubscribeEvent
 	public void onBucketEvent(FillBucketEvent e) {
