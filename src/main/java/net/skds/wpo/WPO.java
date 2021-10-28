@@ -9,12 +9,14 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.skds.core.events.PacketRegistryEvent;
 import net.skds.core.util.SKDSUtils.Side;
 import net.skds.core.util.data.ChunkSectionAdditionalData;
 import net.skds.wpo.client.ClientEvents;
 import net.skds.wpo.data.FluidStateContainer;
-import net.skds.wpo.data.WPOChunkData;
-import net.skds.wpo.network.PacketHandler;
+import net.skds.wpo.data.WPOChunkSectionData;
+import net.skds.wpo.network.ChunkUpdatePacket;
+import net.skds.wpo.network.PipeUpdatePacket;
 import net.skds.wpo.registry.Entities;
 import net.skds.wpo.registry.FBlocks;
 import net.skds.wpo.registry.Items;
@@ -29,6 +31,7 @@ public class WPO {
 
 	public WPO() {
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::regPacket);
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setupFinal);
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
 
@@ -40,11 +43,16 @@ public class WPO {
 		Items.register();
 		FBlocks.register();
 		Entities.register();
-		PacketHandler.init();
+		//PacketHandler.init();
+	}
+
+	private void regPacket(PacketRegistryEvent e) {
+		e.registerPacket(PipeUpdatePacket.class, PipeUpdatePacket::encoder, PipeUpdatePacket::new, PipeUpdatePacket::handle);
+		e.registerPacket(ChunkUpdatePacket.class, ChunkUpdatePacket::encoder, ChunkUpdatePacket::new, ChunkUpdatePacket::handle);
 	}
 
 	private void setup(final FMLCommonSetupEvent event) {
-		ChunkSectionAdditionalData.register(WPOChunkData::new, Side.BOTH);
+		ChunkSectionAdditionalData.register(WPOChunkSectionData::new, Side.BOTH);
 	}
 
 	private void setupFinal(final FMLLoadCompleteEvent event) {

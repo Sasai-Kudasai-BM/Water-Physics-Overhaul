@@ -24,7 +24,7 @@ public class WaterFluidMixin {
 	public void animateTick(World worldIn, BlockPos pos, FluidState state, Random random) {
 		if (!state.isSource() && !state.get(BlockStateProperties.FALLING)) {
 
-			if (random.nextInt(16) == 0 && state.getFlow(worldIn, pos).lengthSquared() > 0.5D) {
+			if (random.nextInt(32) == 0 && state.getFlow(worldIn, pos).lengthSquared() > 0.5D) {
 				worldIn.playSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D,
 						SoundEvents.BLOCK_WATER_AMBIENT, SoundCategory.BLOCKS, random.nextFloat() * 0.25F + 0.75F,
 						random.nextFloat() + 0.5F, false);

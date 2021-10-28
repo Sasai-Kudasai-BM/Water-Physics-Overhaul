@@ -23,15 +23,11 @@ public class PipeUpdatePacket {
 		this.nbt = buffer.readCompoundTag();
 	}
 
-	void encoder(PacketBuffer buffer) {
+	public void encoder(PacketBuffer buffer) {
 		buffer.writeCompoundTag(nbt);
 	}
 
-	public static PipeUpdatePacket decoder(PacketBuffer buffer) {
-		return new PipeUpdatePacket(buffer);
-	}
-
-	void handle(Supplier<NetworkEvent.Context> context) {		
+	public void handle(Supplier<NetworkEvent.Context> context) {		
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientWorld w = (ClientWorld) minecraft.player.world;
 		//w.addParticle(ParticleTypes.FLAME, nbt.getX() + 0.5, nbt.getY() + 0.5, nbt.getZ() + 0.5, 0, 0.06, 0);

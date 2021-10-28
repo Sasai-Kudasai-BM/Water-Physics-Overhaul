@@ -1,13 +1,16 @@
 package net.skds.wpo.fluidphysics;
 
+import com.google.common.util.concurrent.AtomicDouble;
+
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.skds.core.api.multithreading.ITaskRunnable;
 import net.skds.wpo.util.TaskBlocker;
 
-public abstract class FluidTask implements ITaskRunnable {
+public class FluidTask implements ITaskRunnable {
 
-	private static double uuid = 0;
+	private static AtomicDouble uuid = new AtomicDouble();
 
 	public int worker = -1;
 
@@ -15,15 +18,38 @@ public abstract class FluidTask implements ITaskRunnable {
 	public final long pos;
 	public final double priority;
 
-	public FluidTask(WorldWorkSet owner, long pos) {
-		//System.out.println(BlockPos.fromLong(pos));
+	private int time = 0;
+
+	public FluidTask(WorldWorkSet owner, long pos, int time) {
 		this.owner = owner;
 		this.pos = pos;
-		uuid = uuid + 1.0E-6;
-		if (uuid >=1) {
-			uuid = 0;
-		}
-		this.priority = owner.glob.getSqDistToNBP(BlockPos.fromLong(pos)) + uuid;
+
+		double id = uuid.addAndGet(1E-6);
+
+		this.priority = owner.glob.getSqDistToNBP(BlockPos.fromLong(pos)) + id;
+	}
+
+	public FluidTask(WorldWorkSet owner, CompoundNBT nbt) {
+		this.owner = owner;
+		this.pos = nbt.getLong("p");
+		this.priority = nbt.getDouble("w");
+		this.time = nbt.getInt("t");
+	}
+
+	public void tick() {
+		time--;
+	}
+
+	public boolean tickNow() {
+		return time <= 0;
+	}
+
+	public CompoundNBT serialize() {
+		CompoundNBT nbt = new CompoundNBT();
+		nbt.putDouble("w", priority);
+		nbt.putLong("p", pos);
+		nbt.putInt("t", time);
+		return nbt;
 	}
 
 	@Override
@@ -47,46 +73,16 @@ public abstract class FluidTask implements ITaskRunnable {
 		return 0;
 	}
 
-	public static class DefaultTask extends FluidTask {
-
-		public DefaultTask(WorldWorkSet owner, long pos) {
-			super(owner, pos);
-		}
-
-		@Override
-		public void run() {
-			if (owner.excludedTasks.contains(pos)) {
-				return;
-			}
-			//Events.c++;
-			
-			//System.out.println(BlockPos.fromLong(pos));
-			//FFluidDefaultV2 t = new FFluidDefaultV2(owner.world, BlockPos.fromLong(pos), owner, FFluidBasic.Mode.DEFAULT);
-			FFluidDefault t = new FFluidDefault(owner.world, BlockPos.fromLong(pos), owner, FFluidBasic.Mode.DEFAULT, worker);
-			t.run();
-			if (worker != -1) {
-				TaskBlocker.finish(worker);
-			}
-			//t = null;
-		}
+	public int getTime() {
+		return time;
 	}
 
-	public static class EQTask extends FluidTask {
-
-		public EQTask(WorldWorkSet owner, long pos) {
-			super(owner, pos);
-		}
-
-		@Override
-		public void run() {
-			//System.out.println(BlockPos.fromLong(pos));
-			//FFluidEQV2 t = new FFluidEQV2(owner.world, BlockPos.fromLong(pos), owner, FFluidBasic.Mode.DEFAULT);
-			FFluidEQ t = new FFluidEQ(owner.world, BlockPos.fromLong(pos), owner, FFluidBasic.Mode.EQUALIZER, worker);
-			t.run();
-			if (worker != -1) {
-				TaskBlocker.finish(worker);
-			}
-			//t = null;
+	@Override
+	public void run() {
+		FFluidDefault t = new FFluidDefault(owner.world, BlockPos.fromLong(pos), owner, FFluidBasic.Mode.DEFAULT, worker);
+		t.run();
+		if (worker != -1) {
+			TaskBlocker.finish(worker);
 		}
 	}
 }

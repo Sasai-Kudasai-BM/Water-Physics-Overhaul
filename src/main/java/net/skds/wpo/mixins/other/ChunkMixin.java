@@ -11,7 +11,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkSection;
 import net.skds.core.util.data.ChunkSectionAdditionalData;
 import net.skds.wpo.data.FluidStateContainer;
-import net.skds.wpo.data.WPOChunkData;
+import net.skds.wpo.data.WPOChunkSectionData;
 
 @Mixin(Chunk.class)
 public class ChunkMixin {
@@ -26,11 +26,11 @@ public class ChunkMixin {
 			ChunkSection chunksection = this.sections[y >> 4];
 			if (!ChunkSection.isEmpty(chunksection)) {
 
-				WPOChunkData data = ChunkSectionAdditionalData.getTyped((Chunk) (Object) this, y >> 4, WPOChunkData.class);
+				WPOChunkSectionData data = ChunkSectionAdditionalData.getTyped((Chunk) (Object) this, y >> 4, WPOChunkSectionData.class);
 				if (data != null) {
-					FluidStateContainer container = data.getFS(x, y, z);
-					if (container != FluidStateContainer.EMPTY) {
-						return container.state;
+					FluidState fs = data.getFS(x, y, z);
+					if (fs != FluidStateContainer.EMPTY) {
+						return fs;
 					}
 				}
 				return chunksection.getFluidState(x & 15, y & 15, z & 15);
