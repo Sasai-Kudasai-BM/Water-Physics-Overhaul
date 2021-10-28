@@ -6,4 +6,7 @@ logs
 lib
 .settings
 .vscode
+.lnk
+.rar
+generated
 libs
