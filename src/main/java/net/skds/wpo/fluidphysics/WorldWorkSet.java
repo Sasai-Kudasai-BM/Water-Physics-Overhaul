@@ -68,10 +68,10 @@ public class WorldWorkSet implements IWWS {
 		if (i > 3) {
 			return null;
 		}
-		if (MTHooks.COUNTS > 0 || Events.getRemainingTickTimeMilis() > MTHooks.TIME) {
+		if (MTHooks.COUNTS.get() > 0 || Events.getRemainingTickTimeMilis() > MTHooks.TIME) {
 			FluidTask task;
 			while ((task = TASKS_TO_EXECUTE.pollFirst()) != null) {
-				MTHooks.COUNTS--;
+				MTHooks.COUNTS.decrementAndGet();
 				task.worker = i;
 				return task;
 
