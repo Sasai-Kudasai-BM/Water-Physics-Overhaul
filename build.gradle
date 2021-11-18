@@ -57,6 +57,25 @@ minecraft {
 			}
 		}
 
+		client2 {
+			workingDirectory project.file('run')
+			arg "--mixin"
+			arg "mixins." + project.modId + ".json"
+			arg "--username=Sasai_Kudasai_2"
+			jvmArgs "-Xmx3G"
+			//jvmArgs "-XX:+UseConcMarkSweepGC"
+			property "mixin.debug.export", "true"
+			property "mixin.debug", "true"
+			property "mixin.env.disableRefMap", "true"
+			property 'forge.logging.console.level', 'info'
+			property 'terminal.ansi', 'true'
+			mods {
+				skds {
+					source sourceSets.main
+				}
+			}
+		}
+
 		server {
 			workingDirectory project.file('run')
 			arg '--mixin mixins.' + project.modId + '.json'

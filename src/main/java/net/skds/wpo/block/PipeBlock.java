@@ -33,16 +33,14 @@ public class PipeBlock extends Block implements IWaterLoggable, IBaseWL {
 	}
 
 	public static PipeBlock getForReg() {
-		Properties prop = Properties.create(Material.IRON).setRequiresTool().setOpaque(opa).notSolid().hardnessAndResistance(0.5F);
+		Properties prop = Properties.create(Material.IRON).setRequiresTool().setOpaque(PipeBlock::opa).notSolid()
+				.hardnessAndResistance(0.5F);
 		return new PipeBlock(prop);
 	}
 
-	private static final IPositionPredicate opa = new IPositionPredicate() {
-		@Override
-		public boolean test(BlockState s, IBlockReader w, BlockPos p) {
-			return false;
-		}
-	};
+	public static boolean opa(BlockState s, IBlockReader w, BlockPos p) {
+		return false;
+	}
 
 	@Override
 	protected void fillStateContainer(Builder<Block, BlockState> builder) {
@@ -86,31 +84,31 @@ public class PipeBlock extends Block implements IWaterLoggable, IBaseWL {
 	public BlockState getStateForPlacement(BlockItemUseContext context) {
 		return this.getDefaultState();
 	}
-	
+
 	@Override
 	public boolean isTransparent(BlockState state) {
 		return true;
-	}    
+	}
 
 	@Override
 	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos,
 			boolean isMoving) {
 		updateConntections(worldIn, pos);
 	}
-	
-	@Override
-    public BlockState updatePostPlacement(BlockState state, Direction direction, BlockState neighbourState, IWorld world, BlockPos pos, BlockPos neighbourPos) {
 
+	@Override
+	public BlockState updatePostPlacement(BlockState state, Direction direction, BlockState neighbourState,
+			IWorld world, BlockPos pos, BlockPos neighbourPos) {
 		updateConntections(world, pos);
-        return state;
-    }
+		return state;
+	}
 
 	@Override
 	public void onBlockAdded(BlockState state, World worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
 		updateConntections(worldIn, pos);
 	}
 
-	public void updateConntections(IWorld world, BlockPos pos) {		
+	public void updateConntections(IWorld world, BlockPos pos) {
 		PipeTileEntity thisEntity = (PipeTileEntity) world.getTileEntity(pos);
 		if (thisEntity != null) {
 			thisEntity.updateConntections();

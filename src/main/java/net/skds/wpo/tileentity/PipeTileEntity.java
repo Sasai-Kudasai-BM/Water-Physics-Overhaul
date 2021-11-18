@@ -300,6 +300,16 @@ public class PipeTileEntity extends BasicTankEntity {
 		}
 	}
 
+	@Override
+	public void remove() {
+		super.remove();
+		for (TileEntity c : connections) {
+			if (c != null && c instanceof PipeTileEntity) {
+				((PipeTileEntity) c).updateConntections();
+			}
+		}
+	}
+
 	public void addConnection(TileEntity handler, Direction direction) {
 		connections[direction.getIndex()] = handler;
 		updateBoolConnections();
@@ -425,5 +435,11 @@ public class PipeTileEntity extends BasicTankEntity {
 		for (PlayerEntity p : world.getPlayers()) {
 			PacketHandler.send(p, new PipeUpdatePacket(write(new CompoundNBT())));
 		}
+	}
+
+	@Override
+	public void updateContainingBlockInfo() {
+		super.updateContainingBlockInfo();
+		updateConntections();
 	}
 }

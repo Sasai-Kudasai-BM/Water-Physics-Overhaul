@@ -44,7 +44,7 @@ public class WPO {
 	}
 
 	private void setup(final FMLCommonSetupEvent event) {
-		ChunkSectionAdditionalData.register(WPOChunkData::new, Side.BOTH);
+		//ChunkSectionAdditionalData.register(WPOChunkData::new, Side.BOTH);
 	}
 
 	private void setupFinal(final FMLLoadCompleteEvent event) {

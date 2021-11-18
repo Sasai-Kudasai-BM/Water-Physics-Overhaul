@@ -33,6 +33,7 @@ public abstract class BasicTankEntity extends TileEntity implements ITickableTil
 	@Override
 	public void remove() {
 		super.remove();
+		/*
 		if (tank.isEmpty()) {
 			return;
 		}
@@ -51,5 +52,6 @@ public abstract class BasicTankEntity extends TileEntity implements ITickableTil
 		//System.out.println(state0);
 		BlockState ns = FFluidStatic.getUpdatedState(state0, lvl, tf);
 		world.setBlockState(pos, ns);
+		*/
 	}	
 }
