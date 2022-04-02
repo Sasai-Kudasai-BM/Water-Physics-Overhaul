@@ -166,6 +166,7 @@ project.tasks.withType(Jar) { jarTask ->
 }
 
 processResources {
+	duplicatesStrategy 'include'
 	finalizedBy replaceResources
 }
 
