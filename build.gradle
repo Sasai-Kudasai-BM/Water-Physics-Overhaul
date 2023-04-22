@@ -33,14 +33,10 @@ minecraft {
 
 }
 
-configurations {
-    embed
-    compile.extendsFrom(embed)
-}
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.0.14'
-    embed('org.spongepowered:mixin:0.8.2') { transitive = false }
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     compile fg.deobf(fileTree(dir: 'lib', include: ['*.jar']))
 }
 
@@ -58,4 +54,5 @@ jar {
 
 mixin {
     add sourceSets.main, 'mixins.wpo.refmap.json'
+    config 'mixins.wpo.json'
 }
