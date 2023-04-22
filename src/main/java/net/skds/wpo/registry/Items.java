@@ -23,7 +23,7 @@ public class Items {
         public ItemStack createIcon() {
             return new ItemStack(ADVANCED_BUCKET.get());
         }
-    }).setTabPath("wpo");
+    }).setGroupPath("wpo");
 
 
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, WPO.MOD_ID);
