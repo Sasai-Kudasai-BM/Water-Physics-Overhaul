@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        jcenter()
         maven { 
             name = 'forge'
             url = 'https://files.minecraftforge.net/maven' 
@@ -9,11 +8,10 @@ buildscript {
            name = 'sponge'
            url = 'https://repo.spongepowered.org/maven'
         }
-        jcenter()
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7.+'
     }
 }
@@ -24,7 +22,7 @@ version = '0.1.2'
 group = 'net.skds.wpo'
 archivesBaseName = 'water_physics_overhaul'
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
@@ -37,7 +35,7 @@ minecraft {
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.0.14'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    compile fg.deobf(fileTree(dir: 'lib', include: ['*.jar']))
+    implementation fg.deobf(fileTree(dir: 'lib', include: ['*.jar']))
 }
 
 jar {
@@ -45,7 +43,7 @@ jar {
         attributes([
             "MixinConfigs": "mixins.wpo.json",
             "Implementation-Title": project.name,
-            "Implementation-Version": "${version}",
+            "Implementation-Version": project.version,
         ])
     }
 }
