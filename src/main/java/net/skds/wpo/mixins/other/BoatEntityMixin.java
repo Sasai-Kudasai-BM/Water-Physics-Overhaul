@@ -12,7 +12,7 @@ import net.minecraft.entity.item.BoatEntity;
 @Mixin(value = { BoatEntity.class })
 public class BoatEntityMixin {
 
-	@Inject(method = "Lnet/minecraft/entity/item/BoatEntity;getUnderwaterStatus()Lnet/minecraft/entity/item/BoatEntity$Status;", at = @At(value = "RETURN", ordinal = 0), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isSource()Z")), cancellable = true)
+	@Inject(method = "Lnet/minecraft/entity/item/BoatEntity;isUnderwater()Lnet/minecraft/entity/item/BoatEntity$Status;", at = @At(value = "RETURN", ordinal = 0), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isSource()Z")), cancellable = true)
 	public void aaa(CallbackInfoReturnable<BoatEntity.Status> ci) {
 		ci.setReturnValue(BoatEntity.Status.IN_WATER);
 	}

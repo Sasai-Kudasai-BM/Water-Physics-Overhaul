@@ -44,7 +44,7 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 
 	public PumpTileEntity(BlockState state) {
 		super(Entities.PUMP.get());
-		facing = state.get(BlockStateProperties.FACING);
+		facing = state.getValue(BlockStateProperties.FACING);
 	}
 
 	@Override
@@ -55,15 +55,15 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 			pressure = 0;
 		}
 
-		updateContainingBlockInfo();
+		clearCache();
 		BlockState bs = getBlockState();
-		powered = bs.getBlock() == FBlocks.PUMP.get() && bs.get(POWERED);
+		powered = bs.getBlock() == FBlocks.PUMP.get() && bs.getValue(POWERED);
 		if (powered) {
 			if (pressure < MAX_PRESSURE) {
 				pressure += (MAX_PRESSURE - pressure) * WJUH;
 			}
 
-			if (world.isRemote) {
+			if (level.isClientSide) {
 				if (anim < 0) {
 					anim = 0;
 				}
@@ -79,7 +79,7 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 			}
 		} else {
 
-			if (world.isRemote) {
+			if (level.isClientSide) {
 				if (anim > animSpeed / 2) {
 					anim = animSpeed - anim;
 				}
@@ -101,25 +101,25 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 			return;
 		}
 
-		Direction dir = state.get(BlockStateProperties.FACING);
-		BlockPos suckPos = pos.offset(dir);
-		FluidState suckFs = world.getFluidState(suckPos);
-		BlockState suckState = world.getBlockState(suckPos);
+		Direction dir = state.getValue(BlockStateProperties.FACING);
+		BlockPos suckPos = worldPosition.relative(dir);
+		FluidState suckFs = level.getFluidState(suckPos);
+		BlockState suckState = level.getBlockState(suckPos);
 
-		Fluid sucF = suckFs.getFluid();
+		Fluid sucF = suckFs.getType();
 		if (sucF instanceof FlowingFluid) {
-			sucF = ((FlowingFluid) sucF).getStillFluid();
+			sucF = ((FlowingFluid) sucF).getSource();
 		}
 		Fluid tF = fst.getFluid();
-		if (suckFs.isEmpty() || (!tank.isEmpty() && !tF.isEquivalentTo(sucF))
+		if (suckFs.isEmpty() || (!tank.isEmpty() && !tF.isSame(sucF))
 				|| FFluidStatic.canOnlyFullCube(suckState)) {
 			return;
 		}
 		// System.out.println(timer);
 
-		if (FFluidStatic.canReach(suckPos, pos, suckState, Blocks.AIR.getDefaultState(), sucF, world)) {
+		if (FFluidStatic.canReach(suckPos, worldPosition, suckState, Blocks.AIR.defaultBlockState(), sucF, level)) {
 			int dl = (500 - am) / 125;
-			int lvl = suckFs.getLevel();
+			int lvl = suckFs.getAmount();
 			dl = lvl >= dl ? dl : lvl;
 
 			lvl -= dl;
@@ -127,19 +127,19 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 			FluidStack nfst = new FluidStack(sucF, am + (dl * 125));
 			tank.setFluid(nfst);
 
-			world.setBlockState(suckPos, bs2);
+			level.setBlockAndUpdate(suckPos, bs2);
 		}
 	}
 
 	@Override
 	public boolean canBeConnected(Direction dir) {
-		return dir == getBlockState().get(BlockStateProperties.FACING);
+		return dir == getBlockState().getValue(BlockStateProperties.FACING);
 	}
 
 	@Override
 	public boolean canBeConnected(int dir) {
-		Direction d = Direction.byIndex(dir);
-		return d == getBlockState().get(BlockStateProperties.FACING);
+		Direction d = Direction.from3DDataValue(dir);
+		return d == getBlockState().getValue(BlockStateProperties.FACING);
 	}
 
 	@Override
@@ -200,8 +200,8 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 	}
 
 	@Override
-	public void read(BlockState state, CompoundNBT tag) {
-		super.read(state, tag);
+	public void load(BlockState state, CompoundNBT tag) {
+		super.load(state, tag);
 		tank.readFromNBT(tag);
 		if (tag.contains("Pressure")) {
 			pressure = tag.getFloat("Pressure");
@@ -211,8 +211,8 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT tag) {
-		tag = super.write(tag);
+	public CompoundNBT save(CompoundNBT tag) {
+		tag = super.save(tag);
 		tank.writeToNBT(tag);
 		tag.putFloat("Pressure", pressure);
 		return tag;

@@ -42,7 +42,7 @@ public class Events {
 	public void onWWSAttach(OnWWSAttachEvent e) {
 		IWWSG wwsg = e.getWWS();
 		World w = e.getWorld();
-		if (!w.isRemote) {
+		if (!w.isClientSide) {
 			WorldWorkSet w1 = new WorldWorkSet((ServerWorld) w, wwsg);
 			wwsg.addWWS(w1);
 		}

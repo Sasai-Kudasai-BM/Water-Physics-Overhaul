@@ -21,27 +21,27 @@ public class TurboDisplacer {
 		//BlockState oldState = w.getBlockState(pos);
 		FluidState fs = oldState.getFluidState();
 		//FluidState nfs = newState.getFluidState();
-		Fluid f = fs.getFluid();
+		Fluid f = fs.getType();
 		//BlockState newState = e.getPlacedBlock();
 		Block nb = newState.getBlock();
-		int level = fs.getLevel();
+		int level = fs.getAmount();
 		//int nlevel = nfs.getLevel();
 		if (fs.isEmpty()) {
 			return;
 		}
-		if (nb instanceof IWaterLoggable && f.isEquivalentTo(Fluids.WATER)) {
+		if (nb instanceof IWaterLoggable && f.isSame(Fluids.WATER)) {
 			if (level == WPOConfig.MAX_FLUID_LEVEL) {
-				w.setBlockState(pos, FFluidStatic.getUpdatedState(newState, level, f), 3);
+				w.setBlock(pos, FFluidStatic.getUpdatedState(newState, level, f), 3);
 				return;
 			} else if (nb instanceof IBaseWL) {				
-				w.setBlockState(pos, FFluidStatic.getUpdatedState(newState, level, f), 3);
+				w.setBlock(pos, FFluidStatic.getUpdatedState(newState, level, f), 3);
 				return;
 			}
 		}
 		
-		if (!FFluidStatic.canOnlyFullCube(newState) && nb instanceof IBaseWL && f.isEquivalentTo(Fluids.WATER)) {
-			newState = FFluidStatic.getUpdatedState(newState, fs.getLevel(), Fluids.WATER);
-			w.setBlockState(pos, newState);
+		if (!FFluidStatic.canOnlyFullCube(newState) && nb instanceof IBaseWL && f.isSame(Fluids.WATER)) {
+			newState = FFluidStatic.getUpdatedState(newState, fs.getAmount(), Fluids.WATER);
+			w.setBlockAndUpdate(pos, newState);
 			return;
 		}
 

@@ -137,10 +137,10 @@ public class WorldWorkSet implements IWWS {
 	@Override
 	public void close() {
 		lockedEq.clear();
-		ServerTickList<Fluid> stl = world.getPendingFluidTicks();
+		ServerTickList<Fluid> stl = world.getLiquidTicks();
 		ntt.forEach((lp, t) -> {
-			BlockPos pos = BlockPos.fromLong(lp);
-			stl.scheduleTick(pos, world.getFluidState(pos).getFluid(), t + 2);
+			BlockPos pos = BlockPos.of(lp);
+			stl.scheduleTick(pos, world.getFluidState(pos).getType(), t + 2);
 		});
 		ntt.clear();
 		TASKS.forEach(t -> t.revoke(world));

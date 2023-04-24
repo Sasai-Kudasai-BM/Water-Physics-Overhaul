@@ -44,10 +44,10 @@ public abstract class FFluidBasic extends BasicExecutor {
 		this.mode = mode;
 		this.state = getBlockState(pos);
 		this.fs = this.state.getFluidState();
-		this.fluid = fs.getFluid();
+		this.fluid = fs.getType();
 		this.pos = pos;
-		this.longpos = pos.toLong();
-		this.level = fs.getLevel();
+		this.longpos = pos.asLong();
+		this.level = fs.getAmount();
 	}
 
 	public static void updater(UpdateTask task, ServerWorld world) {
@@ -66,42 +66,42 @@ public abstract class FFluidBasic extends BasicExecutor {
 		Chunk chunk = (Chunk) ichunk;
 		Block block = newState.getBlock();
 
-		BlockPos posu = pos.up();
+		BlockPos posu = pos.above();
 		if (getBlockState(posu).getFluidState().isEmpty()) {
 			for (Direction dir : Direction.Plane.HORIZONTAL) {
-				BlockPos posu2 = posu.offset(dir);
+				BlockPos posu2 = posu.relative(dir);
 				if (!getBlockState(posu2).getFluidState().isEmpty()) {
-					WorldWorkSet.pushTask(new FluidTask.DefaultTask(castOwner, posu2.toLong()));
+					WorldWorkSet.pushTask(new FluidTask.DefaultTask(castOwner, posu2.asLong()));
 				}
 			}
 		}
 
-		Fluid fluid = newState.getFluidState().getFluid();
+		Fluid fluid = newState.getFluidState().getType();
 		if (fluid != Fluids.EMPTY) {
 			castOwner.excludedTasks.add(longpos);
 		}
 		synchronized (world) {
-			if (fluid != Fluids.EMPTY && !oldState.isAir() && !fluid.isEquivalentTo(oldState.getFluidState().getFluid())
+			if (fluid != Fluids.EMPTY && !oldState.isAir() && !fluid.isSame(oldState.getFluidState().getType())
 					&& !(oldState.getBlock() instanceof IWaterLoggable)) {
 				((IFlowingFluid) fluid).beforeReplacingBlockCustom(world, pos, oldState);
 			}
 			// world.markBlockRangeForRenderUpdate(pos, oldState, newState);
 
-			if (chunk.getLocationType() != null
-					&& chunk.getLocationType().isAtLeast(ChunkHolder.LocationType.TICKING)) {
-				world.notifyBlockUpdate(pos, oldState, newState, 3);
+			if (chunk.getFullStatus() != null
+					&& chunk.getFullStatus().isOrAfter(ChunkHolder.LocationType.TICKING)) {
+				world.sendBlockUpdated(pos, oldState, newState, 3);
 			}
 
-			world.notifyNeighborsOfStateChange(pos, block);
-			if (state.hasComparatorInputOverride()) {
-				world.updateComparatorOutputLevel(pos, block);
+			world.updateNeighborsAt(pos, block);
+			if (state.hasAnalogOutputSignal()) {
+				world.updateNeighbourForOutputSignal(pos, block);
 			}
 
 			// world.onBlockStateChange(pos, oldState, newState);
 
-			newState.updateNeighbours(world, pos, 0);
+			newState.updateNeighbourShapes(world, pos, 0);
 
-			newState.onBlockAdded(world, pos, oldState, false);
+			newState.onPlace(world, pos, oldState, false);
 
 			// ServerTickList<Fluid> stl = world.getPendingFluidTicks();
 			// if (oldState.getFluidState().getFluid() != fluid) {
@@ -112,10 +112,10 @@ public abstract class FFluidBasic extends BasicExecutor {
 		}
 
 		if ((newState.getFluidState().isEmpty() ^ oldState.getFluidState().isEmpty())
-				&& (newState.getOpacity(world, pos) != oldState.getOpacity(world, pos)
+				&& (newState.getLightBlock(world, pos) != oldState.getLightBlock(world, pos)
 						|| newState.getLightValue(world, pos) != oldState.getLightValue(world, pos)
-						|| newState.isTransparent() || oldState.isTransparent())) {
-			world.getChunkProvider().getLightManager().checkBlock(pos);
+						|| newState.useShapeForLightOcclusion() || oldState.useShapeForLightOcclusion())) {
+			world.getChunkSource().getLightEngine().checkBlock(pos);
 		}
 	}
 
@@ -129,7 +129,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 			execute();
 		}
 		IWWSG wwsg = owner.getG();
-		banPoses.forEach(p -> wwsg.unbanPos(p.toLong()));
+		banPoses.forEach(p -> wwsg.unbanPos(p.asLong()));
 	}
 
 	protected boolean flow(BlockPos pos1, BlockPos pos2, int h) {
@@ -150,17 +150,17 @@ public abstract class FFluidBasic extends BasicExecutor {
 		point1: if (!trySwap(pos1, pos2, h, state1, state2)) {
 			FluidState fs1 = state1.getFluidState();
 			FluidState fs2 = state2.getFluidState();
-			int l1 = fs1.getLevel();
-			int l2 = fs2.getLevel();
+			int l1 = fs1.getAmount();
+			int l2 = fs2.getAmount();
 
-			Fluid f1 = fs1.getFluid();
-			Fluid f2 = fs2.getFluid();
-			if (!f1.isEquivalentTo(f2) && !(fs1.isEmpty() || fs2.isEmpty())) {
+			Fluid f1 = fs1.getType();
+			Fluid f2 = fs2.getType();
+			if (!f1.isSame(f2) && !(fs1.isEmpty() || fs2.isEmpty())) {
 
 				Direction dir = dirFromVec(pos1, pos2);
-				if (fs1.canDisplace(w, pos2, f2, dir)) {
+				if (fs1.canBeReplacedWith(w, pos2, f2, dir)) {
 
-					state2 = Blocks.AIR.getDefaultState();
+					state2 = Blocks.AIR.defaultBlockState();
 					fs2 = state2.getFluidState();
 					l2 = 0;
 
@@ -264,7 +264,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 	}
 
 	protected boolean validate(BlockPos p) {
-		long l = p.toLong();
+		long l = p.asLong();
 		boolean ss = owner.getG().banPos(l);
 		if (ss) {
 			banPoses.add(p);
@@ -276,19 +276,19 @@ public abstract class FFluidBasic extends BasicExecutor {
 	}
 
 	protected void unban(BlockPos p) {
-		long l = p.toLong();
+		long l = p.asLong();
 		owner.getG().unbanPos(l);
 		banPoses.remove(p);
 	}
 
 	protected void addPassedEq(BlockPos addPos) {
-		long l = addPos.toLong();
+		long l = addPos.asLong();
 		castOwner.addEqLock(l);
 		castOwner.addNTTask(l, FFluidStatic.getTickRate((FlowingFluid) fluid, w));
 	}
 
 	protected boolean isPassedEq(BlockPos isPos) {
-		long l = isPos.toLong();
+		long l = isPos.asLong();
 		return castOwner.isEqLocked(l);
 	}
 
@@ -302,8 +302,8 @@ public abstract class FFluidBasic extends BasicExecutor {
 		boolean bb = false;
 		BlockState state1 = getBlockState(pos1);
 		BlockState state2 = getBlockState(pos2);
-		int l1 = state1.getFluidState().getLevel();
-		int l2 = state2.getFluidState().getLevel();
+		int l1 = state1.getFluidState().getAmount();
+		int l2 = state2.getFluidState().getAmount();
 		if ((l1 == MFL && l2 == 0) || (l1 == 0 && l2 == MFL)) {
 			BlockState sn1 = getUpdatedState(state1, l2);
 			BlockState sn2 = getUpdatedState(state2, l1);
@@ -322,7 +322,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 			return;
 		}
 		FluidState fs2 = state2.getFluidState();
-		int level2 = fs2.getLevel();
+		int level2 = fs2.getAmount();
 
 		state = getUpdatedState(state, level2);
 		state2 = getUpdatedState(state2, level);
@@ -341,7 +341,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 			return false;
 		if (f2 == Fluids.EMPTY)
 			return false;
-		return fluid.isEquivalentTo(f2);
+		return fluid.isSame(f2);
 	}
 
 	protected boolean canReach(BlockPos pos1, BlockPos pos2, BlockState state1, BlockState state2) {

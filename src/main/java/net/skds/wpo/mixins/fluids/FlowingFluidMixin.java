@@ -32,35 +32,33 @@ public class FlowingFluidMixin implements IFlowingFluid {
 
     @Inject(method = "tick", at = @At(value = "HEAD"), cancellable = true)
     public void tick(World worldIn, BlockPos pos, FluidState fs, CallbackInfo ci) {
-        if (!worldIn.isRemote) {
-            FluidTasksManager.addFluidTask((ServerWorld) worldIn, pos, fs.getBlockState());
+        if (!worldIn.isClientSide) {
+            FluidTasksManager.addFluidTask((ServerWorld) worldIn, pos, fs.createLegacyBlock());
         }
         ci.cancel();
 
     }
 
     @Inject(method = "getFlow", at = @At(value = "HEAD"), cancellable = true)
-    public Vector3d getFlow(IBlockReader w, BlockPos pos, FluidState fs, CallbackInfoReturnable<Vector3d> ci) {
+    public void getFlow(IBlockReader w, BlockPos pos, FluidState fs, CallbackInfoReturnable<Vector3d> ci) {
+        // .setReturnValue cancels the method injected into and overwrites the return value. No explicit return needed
         ci.setReturnValue(FFluidStatic.getVel(w, pos, fs));
-
-        return ci.getReturnValue();
     }
 
-    @Inject(method = "getHeight", at = @At(value = "HEAD"), cancellable = true)
-    public float getHeight(FluidState fs, CallbackInfoReturnable<Float> ci) {
-        ci.setReturnValue(FFluidStatic.getHeight(fs.getLevel()));
-
-        return ci.getReturnValueF();
+    @Inject(method = "getOwnHeight", at = @At(value = "HEAD"), cancellable = true)
+    public void getOwnHeight(FluidState fs, CallbackInfoReturnable<Float> ci) {
+        // .setReturnValue cancels the method injected into and overwrites the return value. No explicit return needed
+        ci.setReturnValue(FFluidStatic.getHeight(fs.getAmount()));
     }
 
     public void beforeReplacingBlockCustom(IWorld worldIn, BlockPos pos, BlockState state) {
-        beforeReplacingBlock(worldIn, pos, state);
+        beforeDestroyingBlock(worldIn, pos, state);
 
     }
 
     // ================= SHADOW ================ //
 
     @Shadow
-    protected void beforeReplacingBlock(IWorld worldIn, BlockPos pos, BlockState state) {
+    protected void beforeDestroyingBlock(IWorld worldIn, BlockPos pos, BlockState state) {
     }
 }

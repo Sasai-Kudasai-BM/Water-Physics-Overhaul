@@ -12,7 +12,7 @@ public class FluidTasksManager {
 		IWWSG wwsg = ((IWorldExtended) w).getWWS();
 		WorldWorkSet wws = (WorldWorkSet) wwsg.getTyped(WorldWorkSet.class);
 
-		FluidTask task = new FluidTask.DefaultTask(wws, pos.toLong());
+		FluidTask task = new FluidTask.DefaultTask(wws, pos.asLong());
 		WorldWorkSet.pushTask(task);
 		//System.out.println(pos);
 	}

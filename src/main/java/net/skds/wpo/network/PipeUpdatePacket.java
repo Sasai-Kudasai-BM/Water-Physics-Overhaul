@@ -20,11 +20,11 @@ public class PipeUpdatePacket {
 	}
 
 	public PipeUpdatePacket(PacketBuffer buffer) {
-		this.nbt = buffer.readCompoundTag();
+		this.nbt = buffer.readNbt();
 	}
 
 	void encoder(PacketBuffer buffer) {
-		buffer.writeCompoundTag(nbt);
+		buffer.writeNbt(nbt);
 	}
 
 	public static PipeUpdatePacket decoder(PacketBuffer buffer) {
@@ -33,7 +33,7 @@ public class PipeUpdatePacket {
 
 	void handle(Supplier<NetworkEvent.Context> context) {		
 		Minecraft minecraft = Minecraft.getInstance();
-		ClientWorld w = (ClientWorld) minecraft.player.world;
+		ClientWorld w = (ClientWorld) minecraft.player.level;
 		//w.addParticle(ParticleTypes.FLAME, nbt.getX() + 0.5, nbt.getY() + 0.5, nbt.getZ() + 0.5, 0, 0.06, 0);
 		int x = nbt.getInt("x");
 		int y = nbt.getInt("y");
@@ -41,10 +41,10 @@ public class PipeUpdatePacket {
 		BlockPos pos = new BlockPos(x, y, z);
 		//w.addParticle(ParticleTypes.FLAME, x + 0.5, y + 0.5, z + 0.5, 0, 0.06, 0);
 
-		TileEntity te = w.getTileEntity(pos);
+		TileEntity te = w.getBlockEntity(pos);
 		if (te != null && te instanceof PipeTileEntity) {
 			PipeTileEntity pipe = (PipeTileEntity) te;
-			pipe.read(null, nbt);
+			pipe.load(null, nbt);
 		}
 
 

@@ -38,7 +38,7 @@ public class PipePumpTileEntity extends BasicTankEntity implements IConnectionSi
 
 	public PipePumpTileEntity(BlockState state) {
 		super(Entities.PIPE_PUMP.get());
-		facing = state.get(BlockStateProperties.FACING);
+		facing = state.getValue(BlockStateProperties.FACING);
 	}
 
 	@Override
@@ -56,18 +56,18 @@ public class PipePumpTileEntity extends BasicTankEntity implements IConnectionSi
 			pressureOut = pressureIn;
 		}
 
-		updateContainingBlockInfo();
+		clearCache();
 		BlockState bs = getBlockState();
 		// facing = bs.get(BlockStateProperties.FACING);
 		if (bs.getBlock() == FBlocks.PIPE_PUMP.get()) {
-			powered = bs.get(POWERED);
+			powered = bs.getValue(POWERED);
 			if (powered) {
 				if (pressureOut < MAX_PRESSURE && pressureIn > 0) {
 					pressureOut += (MAX_PRESSURE - pressureOut) * WJUH;
 					pressureIn -= pressureIn * WJUH;
 				}
 
-				if (world.isRemote) {
+				if (level.isClientSide) {
 					if (anim < 0) {
 						anim = 0;
 					}
@@ -79,7 +79,7 @@ public class PipePumpTileEntity extends BasicTankEntity implements IConnectionSi
 
 			} else {
 
-				if (world.isRemote) {
+				if (level.isClientSide) {
 					if (anim > animSpeed / 2) {
 						anim = animSpeed - anim;
 					}
@@ -102,7 +102,7 @@ public class PipePumpTileEntity extends BasicTankEntity implements IConnectionSi
 
 	@Override
 	public boolean canBeConnected(int dir) {
-		Direction d = Direction.byIndex(dir);
+		Direction d = Direction.from3DDataValue(dir);
 		return canBeConnected(d);
 	}
 
@@ -171,8 +171,8 @@ public class PipePumpTileEntity extends BasicTankEntity implements IConnectionSi
 	}
 
 	@Override
-	public void read(BlockState state, CompoundNBT tag) {
-		super.read(state, tag);
+	public void load(BlockState state, CompoundNBT tag) {
+		super.load(state, tag);
 		tank.readFromNBT(tag);
 		if (tag.contains("PressureIn")) {
 			pressureIn = tag.getFloat("PressureIn");
@@ -187,8 +187,8 @@ public class PipePumpTileEntity extends BasicTankEntity implements IConnectionSi
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT tag) {
-		tag = super.write(tag);
+	public CompoundNBT save(CompoundNBT tag) {
+		tag = super.save(tag);
 		tank.writeToNBT(tag);
 		tag.putFloat("PressureIn", pressureIn);
 		tag.putFloat("PressureOut", pressureOut);

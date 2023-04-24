@@ -28,31 +28,31 @@ public class PipeRenderer extends TileEntityRenderer<PipeTileEntity> {
 	private final ModelRenderer frong2;
 
 	private static final ResourceLocation TEXTURE = new ResourceLocation(WPO.MOD_ID, "textures/block/pipe.png");
-	private static final RenderType RENDER_TYPE = RenderType.getEntityCutout(TEXTURE);
+	private static final RenderType RENDER_TYPE = RenderType.entityCutout(TEXTURE);
 
 	public PipeRenderer(TileEntityRendererDispatcher rendererDispatcherIn) {
 		super(rendererDispatcherIn);
 		// rendererDispatcherIn.textureManager.bindTexture(TEXTURE);
 
 		junk = new ModelRenderer(64, 64, 0, 0);
-		junk.setRotationPoint(0.0F, 0.0F, 0.0F);
-		junk.setTextureOffset(0, 14).addBox(-5.0F, -5.0F, -5.0F, 10.0F, 10.0F, 10.0F, 0.0F, false);
+		junk.setPos(0.0F, 0.0F, 0.0F);
+		junk.texOffs(0, 14).addBox(-5.0F, -5.0F, -5.0F, 10.0F, 10.0F, 10.0F, 0.0F, false);
 
 		frong = new ModelRenderer(64, 64, 0, 0);
-		frong.setRotationPoint(0.0F, 0.0F, 0.0F);
-		frong.setTextureOffset(0, 0).addBox(-4.0F, -4.0F, -6.0F, 8.0F, 8.0F, 6.0F, 0.0F, false);
-		frong.setTextureOffset(28, 0).addBox(-5.0F, -5.0F, -8.0F, 10.0F, 10.0F, 2.0F, 0.0F, false);
+		frong.setPos(0.0F, 0.0F, 0.0F);
+		frong.texOffs(0, 0).addBox(-4.0F, -4.0F, -6.0F, 8.0F, 8.0F, 6.0F, 0.0F, false);
+		frong.texOffs(28, 0).addBox(-5.0F, -5.0F, -8.0F, 10.0F, 10.0F, 2.0F, 0.0F, false);
 
 		frong2 = new ModelRenderer(64, 64, 0, 0);
-		frong2.setRotationPoint(0.0F, 0.0F, 0.0F);
-		frong2.setTextureOffset(1, 45).addBox(-4.0F, -4.0F, -6.0F, 8.0F, 8.0F, 11.0F, 0.0F, false);
-		frong2.setTextureOffset(28, 0).addBox(-5.0F, -5.0F, -8.0F, 10.0F, 10.0F, 2.0F, 0.0F, false);
+		frong2.setPos(0.0F, 0.0F, 0.0F);
+		frong2.texOffs(1, 45).addBox(-4.0F, -4.0F, -6.0F, 8.0F, 8.0F, 11.0F, 0.0F, false);
+		frong2.texOffs(28, 0).addBox(-5.0F, -5.0F, -8.0F, 10.0F, 10.0F, 2.0F, 0.0F, false);
 	}
 
 	public void setRotationAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
+		modelRenderer.xRot = x;
+		modelRenderer.yRot = y;
+		modelRenderer.zRot = z;
 	}
 
 	@Override
@@ -76,25 +76,25 @@ public class PipeRenderer extends TileEntityRenderer<PipeTileEntity> {
 		int c = 0;
 		for (boolean b : bl) {
 			if (b) {
-				matrixStackIn.push();
-				Direction dir = Direction.byIndex(c);
+				matrixStackIn.pushPose();
+				Direction dir = Direction.from3DDataValue(c);
 				switch (dir) {
 					case UP:
-						matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90));
+						matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(90));
 						break;
 					case DOWN:
-						matrixStackIn.rotate(Vector3f.XP.rotationDegrees(-90));
+						matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-90));
 						break;
 					case EAST:
-						matrixStackIn.rotate(Vector3f.YP.rotationDegrees(-90));
+						matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(-90));
 						break;
 					case NORTH:
 						break;
 					case SOUTH:
-						matrixStackIn.rotate(Vector3f.YP.rotationDegrees(180));
+						matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
 						break;
 					case WEST:
-						matrixStackIn.rotate(Vector3f.YP.rotationDegrees(90));
+						matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90));
 						break;
 					default:
 						break;
@@ -105,7 +105,7 @@ public class PipeRenderer extends TileEntityRenderer<PipeTileEntity> {
 				} else {
 					frong.render(matrixStackIn, ivertexbuilder, combinedLightIn, combinedOverlayIn);
 				}
-				matrixStackIn.pop();
+				matrixStackIn.popPose();
 				// i++;
 			}
 			c++;
@@ -123,27 +123,27 @@ public class PipeRenderer extends TileEntityRenderer<PipeTileEntity> {
 		if (debug) {
 			// =============================
 
-			matrixStackIn.push();
-			FontRenderer fontrenderer = this.renderDispatcher.getFontRenderer();
-			matrixStackIn.rotate(this.renderDispatcher.renderInfo.getRotation());
+			matrixStackIn.pushPose();
+			FontRenderer fontrenderer = this.renderer.getFont();
+			matrixStackIn.mulPose(this.renderer.camera.rotation());
 			matrixStackIn.translate(0.65, 0, -1.25);
 			matrixStackIn.scale(-0.025F, -0.025F, 0.025F);
 			String result = String.format("%.3f", tileEntityIn.pressure);
-			fontrenderer.drawString(matrixStackIn, result, 0, 0, 16776960);
-			matrixStackIn.pop();
+			fontrenderer.draw(matrixStackIn, result, 0, 0, 16776960);
+			matrixStackIn.popPose();
 			// =============================
 			float s = (float) tileEntityIn.getFluidInTank(0).getAmount() / 500;
 			if (s > 0) {
-				matrixStackIn.push();
+				matrixStackIn.pushPose();
 				matrixStackIn.scale(1, s, 1);
 				matrixStackIn.translate(-0.5, -0.5, -0.5);
 
-				BlockPos pos = tileEntityIn.getPos();
-				AxisAlignedBB axisalignedbb = new AxisAlignedBB(pos).offset(-pos.getX(), -pos.getY(), -pos.getZ());
-				WorldRenderer.drawBoundingBox(matrixStackIn, bufferIn.getBuffer(RenderType.getLines()), axisalignedbb,
+				BlockPos pos = tileEntityIn.getBlockPos();
+				AxisAlignedBB axisalignedbb = new AxisAlignedBB(pos).move(-pos.getX(), -pos.getY(), -pos.getZ());
+				WorldRenderer.renderLineBox(matrixStackIn, bufferIn.getBuffer(RenderType.lines()), axisalignedbb,
 						0.0F, 0.0F, 1.0F, 1.0F);
 
-				matrixStackIn.pop();
+				matrixStackIn.popPose();
 			}
 			// =============================
 		}

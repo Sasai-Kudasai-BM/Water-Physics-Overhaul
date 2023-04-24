@@ -43,8 +43,8 @@ public class TaskBlocker {
 		if (n == o) {
 			return true;
 		}
-		BlockPos np = BlockPos.fromLong(n);
-		BlockPos op = BlockPos.fromLong(o);
+		BlockPos np = BlockPos.of(n);
+		BlockPos op = BlockPos.of(o);
 		int dx = Math.abs(np.getX() - op.getX());
 		if (dx > 2) {
 			return false;

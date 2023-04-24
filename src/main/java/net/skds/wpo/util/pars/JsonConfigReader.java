@@ -177,12 +177,12 @@ public class JsonConfigReader {
 		for (String id : list) {
 			if (id.charAt(0) == '#') {
 				id = id.substring(1);
-				ITag<Block> tag = BlockTags.getCollection().get(new ResourceLocation(id));
+				ITag<Block> tag = BlockTags.getAllTags().getTag(new ResourceLocation(id));
 				if (tag == null) {
 					LOGGER.error("Block tag \"" + id + "\" does not exist!");
 					continue;
 				}
-				blocks.addAll(tag.getAllElements());
+				blocks.addAll(tag.getValues());
 				continue;
 			}
 			Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(id));
@@ -201,12 +201,12 @@ public class JsonConfigReader {
 			String id = je.getAsString();
 			if (id.charAt(0) == '#') {
 				id = id.substring(1);
-				ITag<Block> tag = BlockTags.getCollection().get(new ResourceLocation(id));
+				ITag<Block> tag = BlockTags.getAllTags().getTag(new ResourceLocation(id));
 				if (tag == null) {
 					LOGGER.error("Block tag \"" + id + "\" does not exist!");
 					continue;
 				}
-				blocks.addAll(tag.getAllElements());
+				blocks.addAll(tag.getValues());
 				continue;
 			}
 			Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(id));

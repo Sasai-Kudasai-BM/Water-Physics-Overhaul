@@ -21,8 +21,8 @@ public class FFluidEQ extends FFluidBasic {
 
 	@Override
 	public void execute() {
-		if (getBlockState(pos.up()).getFluidState().isEmpty() && !FFluidStatic.canOnlyFullCube(state)
-				&& !canFlow(pos, pos.down(), state, getBlockState(pos.down()), true, false)) {
+		if (getBlockState(pos.above()).getFluidState().isEmpty() && !FFluidStatic.canOnlyFullCube(state)
+				&& !canFlow(pos, pos.below(), state, getBlockState(pos.below()), true, false)) {
 			equalize();
 		}
 	}
@@ -33,7 +33,7 @@ public class FFluidEQ extends FFluidBasic {
 		// setState(pos.add(0, 16, 0), Blocks.STONE.getDefaultState());
 		boolean slided = false;
 		int i0 = w.getRandom().nextInt(4);
-		if (slide && !canReach(pos, pos.down(), state, getBlockState(pos.down())) && level == 1) {
+		if (slide && !canReach(pos, pos.below(), state, getBlockState(pos.below())) && level == 1) {
 			slided = slide();
 		}
 		int dist = COMMON.maxEqDist.get();
@@ -48,7 +48,7 @@ public class FFluidEQ extends FFluidBasic {
 				if (cancel) {
 					return;
 				}
-				Direction dir = Direction.byHorizontalIndex((index + i0) % 4);
+				Direction dir = Direction.from2DDataValue((index + i0) % 4);
 				equalizeLine(dir, false, dist);
 			}
 		}
@@ -88,18 +88,18 @@ public class FFluidEQ extends FFluidBasic {
 					state1 = state2;
 					if (diag) {
 						if (side) {
-							dir = dir.rotateY();
+							dir = dir.getClockWise();
 							side = !side;
 						} else {
-							dir = dir.rotateYCCW();
+							dir = dir.getCounterClockWise();
 							side = !side;
 						}
 					}
-					pos2 = pos1.offset(dir);
+					pos2 = pos1.relative(dir);
 					state2 = getBlockState(pos2);
 					FluidState fs2 = state2.getFluidState();
 					if (canReach(pos1, pos2, state1, state2)
-							&& (fs2.isEmpty() || (fs2.getLevel() < 2 && fs2.getFluid().isEquivalentTo(fluid)))) {
+							&& (fs2.isEmpty() || (fs2.getAmount() < 2 && fs2.getType().isSame(fluid)))) {
 						if ((state1.getBlock() instanceof IWaterLoggable || state2.getBlock() instanceof IWaterLoggable)
 								&& !(fluid instanceof WaterFluid)) {
 							break wh;
@@ -108,7 +108,7 @@ public class FFluidEQ extends FFluidBasic {
 							selPosb2 = true;
 							selPos2 = pos1;
 						}
-						bl = (canFlow(pos1, pos1.down(), state1, getBlockState(pos1.down()), true, false))
+						bl = (canFlow(pos1, pos1.below(), state1, getBlockState(pos1.below()), true, false))
 								&& !FFluidStatic.canOnlyFullCube(state2);
 					} else {
 						break wh;
@@ -162,22 +162,22 @@ public class FFluidEQ extends FFluidBasic {
 
 			if (diag) {
 				if (side) {
-					dir = dir.rotateY();
+					dir = dir.getClockWise();
 					side = !side;
 				} else {
-					dir = dir.rotateYCCW();
+					dir = dir.getCounterClockWise();
 					side = !side;
 				}
 			}
 			pos1 = pos2;
 			state1 = state2;
 
-			BlockPos pos1u = pos1.up();
+			BlockPos pos1u = pos1.above();
 			BlockState state1u = getBlockState(pos1u);
 			FluidState fs1u = state1u.getFluidState();
 
 			if (!blocked && canReach(pos1u, pos1, state1u, state1)
-					&& (!fs1u.isEmpty() && isThisFluid(fs1u.getFluid()))) {
+					&& (!fs1u.isEmpty() && isThisFluid(fs1u.getType()))) {
 				// state1 = state1u;
 				// System.out.println("x");
 				pos2 = pos1u;
@@ -185,7 +185,7 @@ public class FFluidEQ extends FFluidBasic {
 				++hmod;
 				bl = true;
 			} else {
-				pos2 = pos1.offset(dir);
+				pos2 = pos1.relative(dir);
 				state2 = getBlockState(pos2);
 			}
 
@@ -203,7 +203,7 @@ public class FFluidEQ extends FFluidBasic {
 			}
 
 			if (canReach(pos1, pos2, state1, state2)
-					&& (isThisFluid(fs2.getFluid()) || (fs2.isEmpty() && level > 1))) {
+					&& (isThisFluid(fs2.getType()) || (fs2.isEmpty() && level > 1))) {
 				if ((state1.getBlock() instanceof IWaterLoggable || state2.getBlock() instanceof IWaterLoggable)
 						&& !(fluid instanceof WaterFluid)) {
 					// System.out.println("dd");
@@ -214,12 +214,12 @@ public class FFluidEQ extends FFluidBasic {
 
 			} else {
 				// pos1 = pos2;
-				pos2 = pos1.down();
+				pos2 = pos1.below();
 				state1 = state2;
 				state2 = getBlockState(pos2);
 				fs2 = state2.getFluidState();
 				if (canReach(pos1, pos2, state1, state2)
-						&& (!fs2.isEmpty() && isThisFluid(fs2.getFluid()) || fs2.isEmpty())) {
+						&& (!fs2.isEmpty() && isThisFluid(fs2.getType()) || fs2.isEmpty())) {
 					--hmod;
 					bl = true;
 					blocked = true;
@@ -230,7 +230,7 @@ public class FFluidEQ extends FFluidBasic {
 			}
 
 			if (bl && !cancel && validate(pos2)) {
-				int level2 = fs2.getLevel();
+				int level2 = fs2.getAmount();
 					//boolean b = level2 == 8 && level == 1;
 					//if (b) {
 					//	System.out.println(hmod);
@@ -257,7 +257,7 @@ public class FFluidEQ extends FFluidBasic {
 		BlockState state2n = state2;
 
 		FluidState fs2 = state2.getFluidState();
-		int level2 = fs2.getLevel();
+		int level2 = fs2.getAmount();
 		int delta = (level - level2) / 2;
 		// l = 0;
 		if (l != 0) {
@@ -309,7 +309,7 @@ public class FFluidEQ extends FFluidBasic {
 		if ((FFluidStatic.canOnlyFullCube(state2) || FFluidStatic.canOnlyFullCube(state)) && !down) {
 			return false;
 		}
-		if (FFluidStatic.canOnlyFullCube(state2) && state1.getFluidState().getLevel() < WPOConfig.MAX_FLUID_LEVEL) {
+		if (FFluidStatic.canOnlyFullCube(state2) && state1.getFluidState().getAmount() < WPOConfig.MAX_FLUID_LEVEL) {
 			return false;
 		}
 
@@ -328,7 +328,7 @@ public class FFluidEQ extends FFluidBasic {
 		// state2.getFluidState().getFluid(), FFluidStatic.dirFromVec(pos1, pos2)))
 		// return false;
 
-		int level2 = fs2.getLevel();
+		int level2 = fs2.getAmount();
 		if (level2 >= MAX_FLUID_LEVEL && !ignoreLevels) {
 			return false;
 		}
@@ -336,10 +336,10 @@ public class FFluidEQ extends FFluidBasic {
 		if (level == 1 && !down && !ignoreLevels) {
 			if (fs2.isEmpty()) {
 				pos1 = pos2;
-				pos2 = pos2.down();
+				pos2 = pos2.below();
 				state1 = state2;
 				state2 = getBlockState(pos2);
-				if (isThisFluid(state2.getFluidState().getFluid()) || state2.getFluidState().isEmpty()) {
+				if (isThisFluid(state2.getFluidState().getType()) || state2.getFluidState().isEmpty()) {
 					return canFlow(pos1, pos2, state1, state2, true, false);
 				} else {
 					return false;

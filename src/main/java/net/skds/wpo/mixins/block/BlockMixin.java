@@ -13,14 +13,14 @@ import net.skds.wpo.util.interfaces.IBaseWL;
 public class BlockMixin {
 
 	@Shadow
-	private BlockState defaultState;
+	private BlockState defaultBlockState;
 
 	@Overwrite
-	protected final void setDefaultState(BlockState state) {
+	protected final void registerDefaultState(BlockState state) {
 		if (this instanceof IBaseWL && state.hasProperty(BlockStateProperties.WATERLOGGED)) {
-			this.defaultState = state.with(BlockStateProperties.WATERLOGGED, false);
+			this.defaultBlockState = state.setValue(BlockStateProperties.WATERLOGGED, false);
 		} else {
-			this.defaultState = state;
+			this.defaultBlockState = state;
 		}
 	}
 }

@@ -42,6 +42,6 @@ public class BaseWLMixin extends Block implements IBaseWL {
 
 	@Override
 	public void fixDS() {
-		this.setDefaultState(this.getDefaultState().with(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)));
+		this.registerDefaultState(this.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)));
 	}
 }

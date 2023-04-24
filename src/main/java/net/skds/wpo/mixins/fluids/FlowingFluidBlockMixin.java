@@ -20,9 +20,9 @@ public class FlowingFluidBlockMixin extends Block {
         super(properties);
     }
 
-    @Redirect(method = { "Lnet/minecraft/block/FlowingFluidBlock;onBlockAdded",
-            "Lnet/minecraft/block/FlowingFluidBlock;updatePostPlacement",
-            "Lnet/minecraft/block/FlowingFluidBlock;neighborChanged" }, at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/fluid/FlowingFluid;getTickRate(Lnet/minecraft/world/IWorldReader;)I"))
+    @Redirect(method = { "Lnet/minecraft/block/FlowingFluidBlock;onPlace",
+            "Lnet/minecraft/block/FlowingFluidBlock;updateShape",
+            "Lnet/minecraft/block/FlowingFluidBlock;neighborChanged" }, at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/fluid/FlowingFluid;getTickDelay(Lnet/minecraft/world/IWorldReader;)I"))
     public int a(FlowingFluid fluid, IWorldReader w) {
         return FFluidStatic.getTickRate(fluid, w);
     }

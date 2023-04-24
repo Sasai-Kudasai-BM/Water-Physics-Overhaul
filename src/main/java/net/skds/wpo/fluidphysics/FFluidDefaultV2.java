@@ -25,7 +25,7 @@ public class FFluidDefaultV2 extends FFluidBasic {
 	protected void execute() {
 		Random r = new Random();
 
-		BlockPos posD = pos.down();
+		BlockPos posD = pos.below();
 		if (posD.getY() < 0) {
 			if (validate(pos)) {
 				state = getUpdatedState(state, 0);
@@ -39,8 +39,8 @@ public class FFluidDefaultV2 extends FFluidBasic {
 		if (downstate != null) {
 			if (canFlow(pos, posD, state, downstate, true, false)) {
 				if (FFluidStatic.canOnlyFullCube(state) || FFluidStatic.canOnlyFullCube(downstate)) {
-					int l = state.getFluidState().getLevel();
-					int ld = downstate.getFluidState().getLevel();
+					int l = state.getFluidState().getAmount();
+					int ld = downstate.getFluidState().getAmount();
 					if (ld == 0 && l == MAX_FLUID_LEVEL && flowFullCubeV2(pos, posD)) {
 						dc = true;
 						return;
@@ -57,7 +57,7 @@ public class FFluidDefaultV2 extends FFluidBasic {
 
 		if (!dc && FFluidStatic.canOnlyFullCube(state)) {
 			for (Direction dir : FFluidStatic.getRandomizedDirections(r, false)) {
-				BlockPos pos2 = pos.offset(dir);
+				BlockPos pos2 = pos.relative(dir);
 				BlockState state2 = getBlockState(pos2);
 				if (state2.getFluidState().isEmpty() && !FFluidStatic.canOnlyFullCube(state2)
 						&& canReach(pos, pos2, state, state2)) {
@@ -70,12 +70,12 @@ public class FFluidDefaultV2 extends FFluidBasic {
 		}
 
 		for (Direction dir : FFluidStatic.getRandomizedDirections(r, false)) {
-			BlockPos pos2 = pos.offset(dir);
+			BlockPos pos2 = pos.relative(dir);
 			BlockState state2 = getBlockState(pos2);
 			if (FFluidStatic.canOnlyFullCube(state2) && canFlow(pos, pos2, state, state2, true, false) && !dc) {
-				BlockPos posu = pos.up();
+				BlockPos posu = pos.above();
 				BlockState stateu = getBlockState(posu);
-				if (stateu.getFluidState().getLevel() > 0 && canFlow(posu, pos, stateu, state, true, true)) {
+				if (stateu.getFluidState().getAmount() > 0 && canFlow(posu, pos, stateu, state, true, true)) {
 					if (flowFullCubeV2(pos, pos2)) {
 						sc = true;
 						return;
@@ -86,7 +86,7 @@ public class FFluidDefaultV2 extends FFluidBasic {
 			}
 		}
 
-		if (getBlockState(pos.up()).getFluidState().isEmpty() && !FFluidStatic.canOnlyFullCube(state) && !dc && !sc
+		if (getBlockState(pos.above()).getFluidState().isEmpty() && !FFluidStatic.canOnlyFullCube(state) && !dc && !sc
 				&& !cancel) {
 			//castOwner.addEQTask(longpos, (FlowingFluid) fluid);
 			if (!isPassedEq(pos)) {
@@ -104,7 +104,7 @@ public class FFluidDefaultV2 extends FFluidBasic {
 		if ((FFluidStatic.canOnlyFullCube(state2) || FFluidStatic.canOnlyFullCube(state)) && !down) {
 			return false;
 		}
-		if (FFluidStatic.canOnlyFullCube(state2) && state1.getFluidState().getLevel() < WPOConfig.MAX_FLUID_LEVEL) {
+		if (FFluidStatic.canOnlyFullCube(state2) && state1.getFluidState().getAmount() < WPOConfig.MAX_FLUID_LEVEL) {
 			return false;
 		}
 
@@ -115,19 +115,19 @@ public class FFluidDefaultV2 extends FFluidBasic {
 		FluidState fs2 = state2.getFluidState();
 		FluidState fs1 = state1.getFluidState();
 
-		int level2 = fs2.getLevel();
-		int level1 = fs1.getLevel();
-		if (level2 >= MAX_FLUID_LEVEL && !ignoreLevels && fluid.isEquivalentTo(fs2.getFluid())) {
+		int level2 = fs2.getAmount();
+		int level1 = fs1.getAmount();
+		if (level2 >= MAX_FLUID_LEVEL && !ignoreLevels && fluid.isSame(fs2.getType())) {
 			return false;
 		}
 
 		if (level1 == 1 && !down && !ignoreLevels) {
 			if (fs2.isEmpty()) {
 				pos1 = pos2;
-				pos2 = pos2.down();
+				pos2 = pos2.below();
 				state1 = state2;
 				state2 = getBlockState(pos2);
-				if (isThisFluid(state2.getFluidState().getFluid()) || state2.getFluidState().isEmpty()) {
+				if (isThisFluid(state2.getFluidState().getType()) || state2.getFluidState().isEmpty()) {
 					return canFlow(pos1, pos2, state1, state2, true, false);
 				} else {
 					return false;

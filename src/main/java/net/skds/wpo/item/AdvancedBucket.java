@@ -38,19 +38,19 @@ public class AdvancedBucket extends BucketItem implements ICapabilityProvider {
 	private ExtendedFHIS fhis;
 
 	public static AdvancedBucket getBucketForReg(Fluid fluid) {
-		Properties prop = new Properties().maxStackSize(fluid == Fluids.EMPTY ? 16 : 1)
-				.defaultMaxDamage(WPOConfig.MAX_FLUID_LEVEL).setNoRepair().setISTER(() -> ISTER.call());
+		Properties prop = new Properties().stacksTo(fluid == Fluids.EMPTY ? 16 : 1)
+				.defaultDurability(WPOConfig.MAX_FLUID_LEVEL).setNoRepair().setISTER(() -> ISTER.call());
 		return new AdvancedBucket(fluid, prop);
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
-		return super.onItemRightClick(worldIn, playerIn, handIn);
+	public ActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand handIn) {
+		return super.use(worldIn, playerIn, handIn);
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip,
+	public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip,
 			ITooltipFlag flagIn) {
 		ExtendedFHIS fh = new ExtendedFHIS(stack, 1000);
 		FluidStack fst = fh.getFluid();
@@ -58,7 +58,7 @@ public class AdvancedBucket extends BucketItem implements ICapabilityProvider {
 		//Block b = f.getDefaultState().getBlockState().getBlock();
 		TextFormatting form = TextFormatting.DARK_PURPLE;
 		//ITextComponent texComp = new TranslationTextComponent(b.getTranslationKey()).mergeStyle(form);
-		ITextComponent texComp = new TranslationTextComponent(f.getAttributes().getTranslationKey()).mergeStyle(form);
+		ITextComponent texComp = new TranslationTextComponent(f.getAttributes().getTranslationKey()).withStyle(form);
 		tooltip.add(texComp);
 		texComp = new StringTextComponent(fst.getAmount() + " mb");
 		tooltip.add(texComp);		
@@ -79,7 +79,7 @@ public class AdvancedBucket extends BucketItem implements ICapabilityProvider {
 	public static void updateDamage(ItemStack stack) {
 		ExtendedFHIS fst = new ExtendedFHIS(stack, 1000);
 		int sl = fst.getFluid().getAmount() / FFluidStatic.FCONST;
-		stack.setDamage(WPOConfig.MAX_FLUID_LEVEL - sl);
+		stack.setDamageValue(WPOConfig.MAX_FLUID_LEVEL - sl);
 	}
 
 }

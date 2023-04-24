@@ -14,13 +14,13 @@ import net.skds.wpo.fluidphysics.TurboDisplacer;
 @Mixin(value = { FallingBlockEntity.class })
 public class FallingBlockEntityMixin {
 
-	@Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;I)Z"))
+	@Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;setBlock(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;I)Z"))
 	public boolean aaa(World w, BlockPos pos, BlockState ns, int i) {
 		BlockState os = w.getBlockState(pos);
-		if (!os.getFluidState().isEmpty() && !w.isRemote) {
+		if (!os.getFluidState().isEmpty() && !w.isClientSide) {
 			TurboDisplacer.markForDisplace((ServerWorld) w, pos, os, ns);
 			//System.out.println(w + "   " + pos + "   " + os + "   " + ns);
 		}
-		return w.setBlockState(pos, ns, i);
+		return w.setBlock(pos, ns, i);
 	}
 }

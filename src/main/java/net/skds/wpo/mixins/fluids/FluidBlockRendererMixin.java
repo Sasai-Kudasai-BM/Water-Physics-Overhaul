@@ -26,20 +26,20 @@ public class FluidBlockRendererMixin {
 	float[] customAHSafe = new float[4];
 	// render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z
 
-	@Redirect(method = "render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getFluidHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 0))
+	@Redirect(method = "tesselate(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getWaterHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 0))
 	public float gc(FluidBlockRenderer fr, IBlockReader w, BlockPos p, Fluid f) {
 
 		float[] flex = FFluidStatic.getConH(w, p, f);
-		customAH.put(p.toLong(), flex);
+		customAH.put(p.asLong(), flex);
 		customAHSafe = flex;
 		return flex[0];
 
 	}
 
-	@Redirect(method = "render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getFluidHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 1))
+	@Redirect(method = "tesselate(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getWaterHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 1))
 	public float gc1(FluidBlockRenderer fr, IBlockReader w, BlockPos p, Fluid f) {
 
-		float[] ffmas = customAH.get(p.north().toLong());
+		float[] ffmas = customAH.get(p.north().asLong());
 		if (ffmas == null) {
 			ffmas = customAHSafe;
 		}
@@ -48,10 +48,10 @@ public class FluidBlockRendererMixin {
 
 	}
 
-	@Redirect(method = "render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getFluidHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 2))
+	@Redirect(method = "tesselate(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getWaterHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 2))
 	public float gc2(FluidBlockRenderer fr, IBlockReader w, BlockPos p, Fluid f) {
 
-		float[] ffmas = customAH.get(p.north().west().toLong());
+		float[] ffmas = customAH.get(p.north().west().asLong());
 		if (ffmas == null) {
 			ffmas = customAHSafe;
 		}
@@ -60,10 +60,10 @@ public class FluidBlockRendererMixin {
 
 	}
 
-	@Redirect(method = "render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getFluidHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 3))
+	@Redirect(method = "tesselate(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getWaterHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 3))
 	public float gc3(FluidBlockRenderer fr, IBlockReader w, BlockPos p, Fluid f) {
 
-		float[] ffmas = customAH.remove(p.west().toLong());
+		float[] ffmas = customAH.remove(p.west().asLong());
 		if (ffmas == null) {
 			ffmas = customAHSafe;
 		}
@@ -109,7 +109,7 @@ public class FluidBlockRendererMixin {
 	 * p, Fluid f) { if (PhysEXConfig.COMMON.finiteFluids.get()) { return
 	 * FFluidStatic.getConH(w, p, f, new BlockPos(0, 0, 0).north().west()); } else {
 	 * return getFluidHeight(w, p, f); } }
-	 * 
+	 *
 	 * @Redirect(method =
 	 * "render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z",
 	 * at = @At(value = "INVOKE", target =
@@ -118,7 +118,7 @@ public class FluidBlockRendererMixin {
 	 * BlockPos p, Fluid f) { if (PhysEXConfig.COMMON.finiteFluids.get()) { return
 	 * FFluidStatic.getConH(w, p.north(), f, new BlockPos(0, 0, 0).south().west());
 	 * } else { return getFluidHeight(w, p, f); } }
-	 * 
+	 *
 	 * @Redirect(method =
 	 * "render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z",
 	 * at = @At(value = "INVOKE", target =
@@ -127,7 +127,7 @@ public class FluidBlockRendererMixin {
 	 * BlockPos p, Fluid f) { if (PhysEXConfig.COMMON.finiteFluids.get()) { return
 	 * FFluidStatic.getConH(w, p.north().west(), f, new BlockPos(0, 0,
 	 * 0).south().east()); } else { return getFluidHeight(w, p, f); } }
-	 * 
+	 *
 	 * @Redirect(method =
 	 * "render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z",
 	 * at = @At(value = "INVOKE", target =
@@ -140,36 +140,36 @@ public class FluidBlockRendererMixin {
 	// ==================
 
 	@Shadow
-	private void vertexVanilla(IVertexBuilder vertexBuilderIn, double d, double e, double f, float f25, float f26,
-			float f27, float alpha, float f13, float f17, int j) {
+	private void vertexVanilla(IVertexBuilder vertexBuilderIn, double x, double y, double z, float red, float green,
+							   float blue, float alpha, float u, float v, int packedLight) {
 	}
 
 	@Shadow
-	private int getCombinedAverageLight(IBlockDisplayReader lightReaderIn, BlockPos posIn) {
+	private int getLightColor(IBlockDisplayReader lightReaderIn, BlockPos posIn) {
 		return 0;
 	}
 
 	@Shadow
-	private static boolean func_239283_a_(IBlockReader lightReaderIn, BlockPos posIn, Direction down, float f) {
+	private static boolean isFaceOccludedByNeighbor(IBlockReader lightReaderIn, BlockPos posIn, Direction down, float f) {
 		return false;
 	}
 
 	@Shadow
-	private static boolean func_239281_a_(IBlockDisplayReader lightReaderIn, BlockPos posIn, FluidState fluidStateIn,
+	private static boolean shouldRenderFace(IBlockDisplayReader lightReaderIn, BlockPos posIn, FluidState fluidStateIn,
 			BlockState blockstate, Direction down) {
 		return false;
 	}
 
 	@Shadow
-	private static boolean isAdjacentFluidSameAs(IBlockReader lightReaderIn, BlockPos posIn, Direction up,
+	private static boolean isNeighborSameFluid(IBlockReader lightReaderIn, BlockPos posIn, Direction up,
 			FluidState fluidStateIn) {
 		return false;
 	}
 
-	@Shadow
-	private float getFluidHeight(IBlockReader reader, BlockPos pos, Fluid fluidIn) {
-		return 0;
-	}
+//	@Shadow
+//	private float getWaterHeight(IBlockReader reader, BlockPos pos, Fluid fluidIn) {
+//		return 0;
+//	}
 	// @Inject(method =
 	// "render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z",
 	// at = @At(value = "HEAD", ordinal = 0), cancellable = true)

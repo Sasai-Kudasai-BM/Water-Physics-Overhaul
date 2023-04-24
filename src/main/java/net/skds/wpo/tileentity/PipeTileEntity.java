@@ -74,7 +74,7 @@ public class PipeTileEntity extends BasicTankEntity {
 		}
 
 
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			tickFluid();
 			//sendUpdatePacket();
 		}
@@ -85,7 +85,7 @@ public class PipeTileEntity extends BasicTankEntity {
 		IFluidHandler fh2 = getFluidHandler(connected, direction);
 		if (fh2 != null) {
 
-			int i = direction.getIndex();
+			int i = direction.get3DDataValue();
 			FluidStack fst1 = tank.getFluid();
 			FluidStack fst2 = fh2.getFluidInTank(0);
 			if (fst1.isEmpty() && fst2.isEmpty()) {
@@ -217,9 +217,9 @@ public class PipeTileEntity extends BasicTankEntity {
 	}
 
 	private void tickFluid() {
-		for (Direction dir : FFluidStatic.getAllRandomizedDirections(world.rand)) {			
+		for (Direction dir : FFluidStatic.getAllRandomizedDirections(level.random)) {
 		//for (Direction dir : Direction.values()) {
-			int i = dir.getIndex();
+			int i = dir.get3DDataValue();
 			if (connections[i] != null) {
 				tickConnection(connections[i], dir);
 			}
@@ -278,10 +278,10 @@ public class PipeTileEntity extends BasicTankEntity {
 
 	public void updateConntections() {
 		for (Direction dir : Direction.values()) {
-			BlockPos pos2 = pos.offset(dir);
-			BlockState state2 = world.getBlockState(pos2);
+			BlockPos pos2 = worldPosition.relative(dir);
+			BlockState state2 = level.getBlockState(pos2);
 			if (state2.hasTileEntity()) {
-				TileEntity te = world.getTileEntity(pos2);
+				TileEntity te = level.getBlockEntity(pos2);
 				if (te.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY).resolve().isPresent()) {
 					if (te instanceof IConnectionSides && !((IConnectionSides) te).canBeConnected(dir)) {
 						removeConnection(dir);
@@ -301,12 +301,12 @@ public class PipeTileEntity extends BasicTankEntity {
 	}
 
 	public void addConnection(TileEntity handler, Direction direction) {
-		connections[direction.getIndex()] = handler;
+		connections[direction.get3DDataValue()] = handler;
 		updateBoolConnections();
 	}
 
 	public void removeConnection(Direction direction) {
-		connections[direction.getIndex()] = null;
+		connections[direction.get3DDataValue()] = null;
 		updateBoolConnections();
 	}
 
@@ -314,13 +314,13 @@ public class PipeTileEntity extends BasicTankEntity {
 		VoxelShape shape = MID_SHAPE;
 		for (int i = 0; i < 6; i++) {
 			if (connections[i] != null) {
-				Vector3i dirvec = Direction.byIndex(i).getDirectionVec();
+				Vector3i dirvec = Direction.from3DDataValue(i).getNormal();
 				Vector3d vec = new Vector3d(dirvec.getX(), dirvec.getY(), dirvec.getZ()).scale(3 * PIX);
-				VoxelShape shape2 = VoxelShapes.create(MID_AABB.offset(vec));
-				shape = VoxelShapes.combine(shape, shape2, IBooleanFunction.OR);
+				VoxelShape shape2 = VoxelShapes.create(MID_AABB.move(vec));
+				shape = VoxelShapes.joinUnoptimized(shape, shape2, IBooleanFunction.OR);
 			}
 		}
-		return shape.simplify();
+		return shape.optimize();
 	}
 
 	public static float getPressurePerStack(FluidStack stack) {
@@ -350,8 +350,8 @@ public class PipeTileEntity extends BasicTankEntity {
 	}
 
 	@Override
-	public void read(BlockState state, CompoundNBT tag) {
-		super.read(state, tag);
+	public void load(BlockState state, CompoundNBT tag) {
+		super.load(state, tag);
 		tank.readFromNBT(tag);
 		if (tag.contains("Pressure")) {
 			pressure = tag.getFloat("Pressure");
@@ -366,8 +366,8 @@ public class PipeTileEntity extends BasicTankEntity {
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT tag) {
-		tag = super.write(tag);
+	public CompoundNBT save(CompoundNBT tag) {
+		tag = super.save(tag);
 		tank.writeToNBT(tag);
 		tag.putFloat("Pressure", pressure);
 		ListNBT flowListNBT = new ListNBT();
@@ -422,8 +422,8 @@ public class PipeTileEntity extends BasicTankEntity {
 
 	@SuppressWarnings("unused")
 	private void sendUpdatePacket() {
-		for (PlayerEntity p : world.getPlayers()) {
-			PacketHandler.send(p, new PipeUpdatePacket(write(new CompoundNBT())));
+		for (PlayerEntity p : level.players()) {
+			PacketHandler.send(p, new PipeUpdatePacket(save(new CompoundNBT())));
 		}
 	}
 }

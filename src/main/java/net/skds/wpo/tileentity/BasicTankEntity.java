@@ -31,25 +31,25 @@ public abstract class BasicTankEntity extends TileEntity implements ITickableTil
 	}
 
 	@Override
-	public void remove() {
-		super.remove();
+	public void setRemoved() {
+		super.setRemoved();
 		if (tank.isEmpty()) {
 			return;
 		}
 		Fluid tf = tank.getFluid().getFluid();
-		BlockState state0 = world.getBlockState(pos);
+		BlockState state0 = level.getBlockState(worldPosition);
 		int lvl = tank.getFluid().getAmount() / 125;
 		FluidState fs = state0.getFluidState();
-		if (!fs.isEmpty() && fs.getFluid().isEquivalentTo(tf)) {
-			lvl += fs.getLevel();
+		if (!fs.isEmpty() && fs.getType().isSame(tf)) {
+			lvl += fs.getAmount();
 			if (lvl > 8) {
 				lvl = 8;
 			}
 		} else {
-			state0 = Blocks.AIR.getDefaultState();
+			state0 = Blocks.AIR.defaultBlockState();
 		}
 		//System.out.println(state0);
 		BlockState ns = FFluidStatic.getUpdatedState(state0, lvl, tf);
-		world.setBlockState(pos, ns);
+		level.setBlockAndUpdate(worldPosition, ns);
 	}	
 }

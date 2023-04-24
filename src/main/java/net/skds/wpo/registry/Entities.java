@@ -19,10 +19,10 @@ public class Entities {
     public static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MOD_ID);
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, MOD_ID);
     
-	public static final RegistryObject<TileEntityType<PipePumpTileEntity>> PIPE_PUMP = TILE_ENTITIES.register("pipe_pump", () -> TileEntityType.Builder.create(PipePumpTileEntity::new, FBlocks.PIPE_PUMP.get()).build(null));
-	public static final RegistryObject<TileEntityType<PumpTileEntity>> PUMP = TILE_ENTITIES.register("pump", () -> TileEntityType.Builder.create(PumpTileEntity::new, FBlocks.PUMP.get()).build(null));
-	public static final RegistryObject<TileEntityType<FluidGateTileEntity>> GATE = TILE_ENTITIES.register("gate", () -> TileEntityType.Builder.create(FluidGateTileEntity::new, FBlocks.GATE.get()).build(null));
-	public static final RegistryObject<TileEntityType<PipeTileEntity>> PIPE = TILE_ENTITIES.register("pipe", () -> TileEntityType.Builder.create(PipeTileEntity::new, FBlocks.PIPE.get()).build(null));
+	public static final RegistryObject<TileEntityType<PipePumpTileEntity>> PIPE_PUMP = TILE_ENTITIES.register("pipe_pump", () -> TileEntityType.Builder.of(PipePumpTileEntity::new, FBlocks.PIPE_PUMP.get()).build(null));
+	public static final RegistryObject<TileEntityType<PumpTileEntity>> PUMP = TILE_ENTITIES.register("pump", () -> TileEntityType.Builder.of(PumpTileEntity::new, FBlocks.PUMP.get()).build(null));
+	public static final RegistryObject<TileEntityType<FluidGateTileEntity>> GATE = TILE_ENTITIES.register("gate", () -> TileEntityType.Builder.of(FluidGateTileEntity::new, FBlocks.GATE.get()).build(null));
+	public static final RegistryObject<TileEntityType<PipeTileEntity>> PIPE = TILE_ENTITIES.register("pipe", () -> TileEntityType.Builder.of(PipeTileEntity::new, FBlocks.PIPE.get()).build(null));
 	
 	public static void register() {
 		IEventBus eb = FMLJavaModLoadingContext.get().getModEventBus();

@@ -44,7 +44,7 @@ public class FluidGateTileEntity extends BasicTankEntity
 		dirs[5] = Direction.UP;
 
 		for (int index = 0; index < 4; ++index) {
-			Direction dir = Direction.byHorizontalIndex((index));
+			Direction dir = Direction.from2DDataValue((index));
 			dirs[index + 1] = dir;
 		}
 
@@ -54,7 +54,7 @@ public class FluidGateTileEntity extends BasicTankEntity
 	@Override
 	public void tick() {
 		timer++;
-		if (world.isRemote) {
+		if (level.isClientSide) {
 			return;
 		}
 
@@ -66,9 +66,9 @@ public class FluidGateTileEntity extends BasicTankEntity
 			pressure = ATM_PRESSURE;
 		}
 
-		updateContainingBlockInfo();
+		clearCache();
 		BlockState bs = getBlockState();
-		if (bs.getBlock() == FBlocks.GATE.get() && !bs.get(POWERED)) {
+		if (bs.getBlock() == FBlocks.GATE.get() && !bs.getValue(POWERED)) {
 
 			if (timer % 4 == 0) {
 				tickGate(bs);
@@ -89,23 +89,23 @@ public class FluidGateTileEntity extends BasicTankEntity
 
 
 		for (Direction dir : getDirections()) {
-			if (dir.getOpposite() == state.get(BlockStateProperties.FACING)) {
+			if (dir.getOpposite() == state.getValue(BlockStateProperties.FACING)) {
 				continue;
 			}
 
-			BlockPos flowPos = pos.offset(dir);
-			FluidState flowFs = world.getFluidState(flowPos);
-			BlockState flowState = world.getBlockState(flowPos);
+			BlockPos flowPos = worldPosition.relative(dir);
+			FluidState flowFs = level.getFluidState(flowPos);
+			BlockState flowState = level.getBlockState(flowPos);
 
-			Fluid flowF = flowFs.getFluid();
+			Fluid flowF = flowFs.getType();
 			Fluid tF = fst.getFluid();
-			if ((!flowFs.isEmpty() && !tF.isEquivalentTo(flowF)) || FFluidStatic.canOnlyFullCube(flowState)) {
+			if ((!flowFs.isEmpty() && !tF.isSame(flowF)) || FFluidStatic.canOnlyFullCube(flowState)) {
 				return;
 			}
 
-			if (FFluidStatic.canReach(pos, flowPos, Blocks.AIR.getDefaultState(), flowState, tF, world)) {
+			if (FFluidStatic.canReach(worldPosition, flowPos, Blocks.AIR.defaultBlockState(), flowState, tF, level)) {
 				int dl = am / 125;
-				int lvl = flowFs.getLevel();
+				int lvl = flowFs.getAmount();
 				dl = 8 - lvl >= dl ? dl : 8 - lvl;
 
 				if (dl > 0) {
@@ -114,7 +114,7 @@ public class FluidGateTileEntity extends BasicTankEntity
 					FluidStack nfst = new FluidStack(tF, am - (dl * 125));
 					tank.setFluid(nfst);
 
-					world.setBlockState(flowPos, bs2);
+					level.setBlockAndUpdate(flowPos, bs2);
 					atm = true;
 					break;
 				}
@@ -124,13 +124,13 @@ public class FluidGateTileEntity extends BasicTankEntity
 
 	@Override
 	public boolean canBeConnected(Direction dir) {
-		return dir == getBlockState().get(BlockStateProperties.FACING);
+		return dir == getBlockState().getValue(BlockStateProperties.FACING);
 	}
 
 	@Override
 	public boolean canBeConnected(int dir) {
-		Direction d = Direction.byIndex(dir);
-		return d == getBlockState().get(BlockStateProperties.FACING);
+		Direction d = Direction.from3DDataValue(dir);
+		return d == getBlockState().getValue(BlockStateProperties.FACING);
 	}
 
 	@Override
@@ -191,8 +191,8 @@ public class FluidGateTileEntity extends BasicTankEntity
 	}
 
 	@Override
-	public void read(BlockState state, CompoundNBT tag) {
-		super.read(state, tag);
+	public void load(BlockState state, CompoundNBT tag) {
+		super.load(state, tag);
 		tank.readFromNBT(tag);
 		if (tag.contains("Pressure")) {
 			pressure = tag.getFloat("Pressure");
@@ -202,8 +202,8 @@ public class FluidGateTileEntity extends BasicTankEntity
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT tag) {
-		tag = super.write(tag);
+	public CompoundNBT save(CompoundNBT tag) {
+		tag = super.save(tag);
 		tank.writeToNBT(tag);
 		tag.putFloat("Pressure", pressure);
 		return tag;

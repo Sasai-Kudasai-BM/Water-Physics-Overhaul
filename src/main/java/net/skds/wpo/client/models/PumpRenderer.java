@@ -24,34 +24,34 @@ public class PumpRenderer extends TileEntityRenderer<PumpTileEntity> {
 	private final ModelRenderer terebilka;
 
 	private static final ResourceLocation TEXTURE = new ResourceLocation(WPO.MOD_ID, "textures/block/pump_te.png");
-	private static final RenderType RENDER_TYPE = RenderType.getEntityCutout(TEXTURE);
+	private static final RenderType RENDER_TYPE = RenderType.entityCutout(TEXTURE);
 
 	public PumpRenderer(TileEntityRendererDispatcher rendererDispatcherIn) {
 		super(rendererDispatcherIn);
 		// rendererDispatcherIn.textureManager.bindTexture(TEXTURE);
 
 		zasos = new ModelRenderer(64, 64, 0, 0);
-		zasos.setRotationPoint(8.0F, 8.0F, -8.0F);
-		zasos.setTextureOffset(1, 1).addBox(-13.0F, -13.0F, 1.0F, 10.0F, 10.0F, 15.0F, 0.0F, false);
-		zasos.setTextureOffset(0, 46).addBox(-1.0F, -11.0F, 2.0F, 1.0F, 6.0F, 12.0F, 0.0F, false);
-		zasos.setTextureOffset(0, 46).addBox(-16.0F, -11.0F, 2.0F, 1.0F, 6.0F, 12.0F, 0.0F, true);
+		zasos.setPos(8.0F, 8.0F, -8.0F);
+		zasos.texOffs(1, 1).addBox(-13.0F, -13.0F, 1.0F, 10.0F, 10.0F, 15.0F, 0.0F, false);
+		zasos.texOffs(0, 46).addBox(-1.0F, -11.0F, 2.0F, 1.0F, 6.0F, 12.0F, 0.0F, false);
+		zasos.texOffs(0, 46).addBox(-16.0F, -11.0F, 2.0F, 1.0F, 6.0F, 12.0F, 0.0F, true);
 
 		cube_r1 = new ModelRenderer(64, 64, 0, 0);
-		cube_r1.setRotationPoint(-8.0F, -8.0F, 8.0F);
+		cube_r1.setPos(-8.0F, -8.0F, 8.0F);
 		zasos.addChild(cube_r1);
 		setRotationAngle(cube_r1, 0.0F, 0.0F, 1.5708F);
-		cube_r1.setTextureOffset(0, 46).addBox(-8.0F, -3.0F, -6.0F, 1.0F, 6.0F, 12.0F, 0.0F, true);
-		cube_r1.setTextureOffset(0, 46).addBox(7.0F, -3.0F, -6.0F, 1.0F, 6.0F, 12.0F, 0.0F, false);
+		cube_r1.texOffs(0, 46).addBox(-8.0F, -3.0F, -6.0F, 1.0F, 6.0F, 12.0F, 0.0F, true);
+		cube_r1.texOffs(0, 46).addBox(7.0F, -3.0F, -6.0F, 1.0F, 6.0F, 12.0F, 0.0F, false);
 
 		terebilka = new ModelRenderer(64, 64, 0, 0);
-		terebilka.setRotationPoint(8.0F, 8.0F, -8.0F);
-		terebilka.setTextureOffset(0, 26).addBox(-15.0F, -15.0F, 12.0F, 14.0F, 14.0F, 2.0F, 0.0F, false);
+		terebilka.setPos(8.0F, 8.0F, -8.0F);
+		terebilka.texOffs(0, 26).addBox(-15.0F, -15.0F, 12.0F, 14.0F, 14.0F, 2.0F, 0.0F, false);
 	}
 
 	public void setRotationAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
+		modelRenderer.xRot = x;
+		modelRenderer.yRot = y;
+		modelRenderer.zRot = z;
 	}
 
 	@Override
@@ -60,27 +60,27 @@ public class PumpRenderer extends TileEntityRenderer<PumpTileEntity> {
 		// RenderMaterial m = new RenderMaterial(ATLAS, TEXTURE);
 		// IVertexBuilder ivertexbuilder = bufferIn.getBuffer(RenderType.getCutout());
 		IVertexBuilder ivertexbuilder = bufferIn.getBuffer(RENDER_TYPE);
-		matrixStackIn.push();
+		matrixStackIn.pushPose();
 		matrixStackIn.translate(0.5, 0.5, 0.5);
 
 		Direction dir = tileEntityIn.facing;
 		switch (dir) {
 			case UP:
-				matrixStackIn.rotate(Vector3f.XP.rotationDegrees(90));
+				matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(90));
 				break;
 			case DOWN:
-				matrixStackIn.rotate(Vector3f.XP.rotationDegrees(-90));
+				matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-90));
 				break;
 			case EAST:
-				matrixStackIn.rotate(Vector3f.YP.rotationDegrees(-90));
+				matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(-90));
 				break;
 			case NORTH:
 				break;
 			case SOUTH:
-				matrixStackIn.rotate(Vector3f.YP.rotationDegrees(180));
+				matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
 				break;
 			case WEST:
-				matrixStackIn.rotate(Vector3f.YP.rotationDegrees(90));
+				matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90));
 				break;
 			default:
 				break;
@@ -116,6 +116,6 @@ public class PumpRenderer extends TileEntityRenderer<PumpTileEntity> {
 
 		terebilka.render(matrixStackIn, ivertexbuilder, combinedLightIn, combinedOverlayIn);
 
-		matrixStackIn.pop();
+		matrixStackIn.popPose();
 	}
 }

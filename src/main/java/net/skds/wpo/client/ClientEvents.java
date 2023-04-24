@@ -21,10 +21,10 @@ public class ClientEvents {
 
 	public static void setup(final FMLClientSetupEvent event) {
 
-		RenderTypeLookup.setRenderLayer(FBlocks.PIPE.get(), RenderType.getTranslucent());
-		RenderTypeLookup.setRenderLayer(FBlocks.PIPE_PUMP.get(), RenderType.getTranslucent());
-		RenderTypeLookup.setRenderLayer(FBlocks.PUMP.get(), RenderType.getTranslucent());
-		RenderTypeLookup.setRenderLayer(FBlocks.GATE.get(), RenderType.getTranslucent());
+		RenderTypeLookup.setRenderLayer(FBlocks.PIPE.get(), RenderType.translucent());
+		RenderTypeLookup.setRenderLayer(FBlocks.PIPE_PUMP.get(), RenderType.translucent());
+		RenderTypeLookup.setRenderLayer(FBlocks.PUMP.get(), RenderType.translucent());
+		RenderTypeLookup.setRenderLayer(FBlocks.GATE.get(), RenderType.translucent());
 
 		ClientRegistry.bindTileEntityRenderer((TileEntityType<PipePumpTileEntity>) Entities.PIPE_PUMP.get(), PipePumpRenderer::new);
 		ClientRegistry.bindTileEntityRenderer((TileEntityType<PumpTileEntity>) Entities.PUMP.get(), PumpRenderer::new);

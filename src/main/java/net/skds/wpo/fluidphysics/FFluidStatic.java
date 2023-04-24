@@ -84,7 +84,7 @@ public class FFluidStatic {
 		}
 		int i0 = r.nextInt(4);
 		for (int index = 0; index < 4; ++index) {
-			Direction dir = Direction.byHorizontalIndex((index + i0) % 4);
+			Direction dir = Direction.from2DDataValue((index + i0) % 4);
 			dirs[index] = dir;
 		}
 
@@ -97,7 +97,7 @@ public class FFluidStatic {
 
 		int i0 = r.nextInt(6);
 		for (int index = 0; index < 6; ++index) {
-			Direction dir = Direction.byIndex((index + i0) % 6);
+			Direction dir = Direction.from3DDataValue((index + i0) % 6);
 			dirs[index] = dir;
 		}
 
@@ -110,28 +110,28 @@ public class FFluidStatic {
 		}
 		if (FFluidStatic.canOnlyFullCube(state0) && fluid instanceof WaterFluid) {
 			if (newlevel >= 1) {
-				return state0.with(BlockStateProperties.WATERLOGGED, true);
+				return state0.setValue(BlockStateProperties.WATERLOGGED, true);
 			} else {
-				return state0.with(BlockStateProperties.WATERLOGGED, false);
+				return state0.setValue(BlockStateProperties.WATERLOGGED, false);
 			}
 		}
 		if (state0.getBlock() instanceof IBaseWL && fluid instanceof WaterFluid) {
 			if (newlevel >= 1) {
-				return state0.with(BlockStateProperties.WATERLOGGED, true).with(BlockStateProps.FFLUID_LEVEL, newlevel);
+				return state0.setValue(BlockStateProperties.WATERLOGGED, true).setValue(BlockStateProps.FFLUID_LEVEL, newlevel);
 			} else {
-				return state0.with(BlockStateProperties.WATERLOGGED, false).with(BlockStateProps.FFLUID_LEVEL,
+				return state0.setValue(BlockStateProperties.WATERLOGGED, false).setValue(BlockStateProps.FFLUID_LEVEL,
 						newlevel);
 			}
 		}
 		FluidState fs2;
 		if (newlevel >= WPOConfig.MAX_FLUID_LEVEL) {
-			fs2 = ((FlowingFluid) fluid).getStillFluidState(false);
+			fs2 = ((FlowingFluid) fluid).getSource(false);
 		} else if (newlevel <= 0) {
-			fs2 = Fluids.EMPTY.getDefaultState();
+			fs2 = Fluids.EMPTY.defaultFluidState();
 		} else {
-			fs2 = ((FlowingFluid) fluid).getFlowingFluidState(newlevel, false);
+			fs2 = ((FlowingFluid) fluid).getFlowing(newlevel, false);
 		}
-		return fs2.getBlockState();
+		return fs2.createLegacyBlock();
 	}
 
 	public static float getHeight(int level) {
@@ -157,18 +157,18 @@ public class FFluidStatic {
 			return false;
 		if (f2 == Fluids.EMPTY)
 			return false;
-		return f1.isEquivalentTo(f2);
+		return f1.isSame(f2);
 	}
 
 	public static int getTickRate(FlowingFluid fluid, IWorldReader w) {
-		int rate = fluid.getTickRate(w);
+		int rate = fluid.getTickDelay(w);
 		rate /= 2;
 		//System.out.println(rate);
 		return rate > 0 ? rate : 1;
 	}
 
 	public static Direction dirFromVec(BlockPos pos, BlockPos pos2) {
-		return Direction.getFacingFromVector(pos2.getX() - pos.getX(), pos2.getY() - pos.getY(),
+		return Direction.getNearest(pos2.getX() - pos.getX(), pos2.getY() - pos.getY(),
 				pos2.getZ() - pos.getZ());
 	}
 
@@ -177,24 +177,24 @@ public class FFluidStatic {
 	public static Vector3d getVel2(IBlockReader w, BlockPos posV, FluidState state) {
 
 		Vector3d vel = new Vector3d(0, 0, 0);
-		int level = state.getLevel();
+		int level = state.getAmount();
 		Iterator<Direction> iter = Direction.Plane.HORIZONTAL.iterator();
 
 		while (iter.hasNext()) {
 			Direction dir = (Direction) iter.next();
-			BlockPos pos2 = posV.offset(dir);
+			BlockPos pos2 = posV.relative(dir);
 
 			BlockState st = w.getBlockState(pos2);
 			FluidState fluidState = st.getFluidState();
 			if (!fluidState.isEmpty() && canReach(w, posV, dir.getOpposite())) {
-				int lvl0 = fluidState.getLevel();
-				FluidState f2 = w.getFluidState(pos2.up());
-				if (isSameFluid(state.getFluid(), f2.getFluid())) {
-					lvl0 += f2.getLevel();
+				int lvl0 = fluidState.getAmount();
+				FluidState f2 = w.getFluidState(pos2.above());
+				if (isSameFluid(state.getType(), f2.getType())) {
+					lvl0 += f2.getAmount();
 				}
 				int delta = level - lvl0;
 				if (delta > 1 || delta < -1) {
-					Vector3i v3i = dir.getDirectionVec();
+					Vector3i v3i = dir.getNormal();
 					vel = vel.add(v3i.getX() * delta, 0, v3i.getZ() * delta);
 				}
 			}
@@ -206,37 +206,37 @@ public class FFluidStatic {
 	public static Vector3d getVel(IBlockReader w, BlockPos pos, FluidState fs) {
 
 		Vector3d vel = new Vector3d(0, 0, 0);
-		int level = fs.getLevel();
-		BlockState state = fs.getBlockState();
-		Fluid fluid = fs.getFluid();
-		BlockPos posu = pos.up();
+		int level = fs.getAmount();
+		BlockState state = fs.createLegacyBlock();
+		Fluid fluid = fs.getType();
+		BlockPos posu = pos.above();
 
 		boolean flag = false;
 
 		BlockState stateu = w.getBlockState(posu);
 
 		if (canReach(pos, posu, state, stateu, fluid, w) && !stateu.getFluidState().isEmpty()) {
-			level += stateu.getFluidState().getLevel();
+			level += stateu.getFluidState().getAmount();
 			flag = true;
 		}
 
 		for (Direction dir : Direction.Plane.HORIZONTAL) {
-			BlockPos pos2 = pos.offset(dir);
+			BlockPos pos2 = pos.relative(dir);
 
 			BlockState state2 = w.getBlockState(pos2);
 			FluidState fs2 = state2.getFluidState();
 
 			if (!fs2.isEmpty() && canReach(pos, pos2, state, state2, fluid, w)) {
-				int lvl2 = fs2.getLevel();
+				int lvl2 = fs2.getAmount();
 				if (flag) {
-					FluidState fs2u = w.getFluidState(pos2.up());
-					if (isSameFluid(fluid, fs2u.getFluid())) {
-						lvl2 += fs2u.getLevel();
+					FluidState fs2u = w.getFluidState(pos2.above());
+					if (isSameFluid(fluid, fs2u.getType())) {
+						lvl2 += fs2u.getAmount();
 					}
 				}
 				int delta = level - lvl2;
 				if (delta > 1 || delta < -1) {
-					Vector3i v3i = dir.getDirectionVec();
+					Vector3i v3i = dir.getNormal();
 					vel = vel.add(v3i.getX() * delta, 0, v3i.getZ() * delta);
 				}
 			}
@@ -262,22 +262,22 @@ public class FFluidStatic {
 		BlockState stated = null;
 
 		BlockState state = w.getBlockState(pos);
-		float level = state.getFluidState().getHeight();
+		float level = state.getFluidState().getOwnHeight();
 		float[] sum = new float[] { level, level, level, level };
 
-		BlockPos posu = pos.up();
+		BlockPos posu = pos.above();
 		BlockState statu = w.getBlockState(posu);
 		FluidState ufs = w.getFluidState(posu);
 
 		boolean posus = canReach(pos, posu, state, statu, fluid, w);
 
-		if (fluid.isEquivalentTo(ufs.getFluid()) && posus) {
+		if (fluid.isSame(ufs.getType()) && posus) {
 			return new float[] { 1.0F, 1.0F, 1.0F, 1.0F };
 		}
 
-		posd = pos.down();
+		posd = pos.below();
 		stated = w.getBlockState(posd);
-		downsuc = (stated.getFluidState().getFluid().isEquivalentTo(fluid));
+		downsuc = (stated.getFluidState().getType().isSame(fluid));
 
 		if (posus) {
 			offset2 = 1.0F;
@@ -290,19 +290,19 @@ public class FFluidStatic {
 		// int n = -1;
 		Direction dir = Direction.EAST;
 		for (int n = 0; n < 4; n++) {
-			dir = dir.rotateYCCW();
+			dir = dir.getCounterClockWise();
 			// ++n;
 			int n2 = n > 0 ? n - 1 : 3;
-			BlockPos pos2 = pos.offset(dir);
+			BlockPos pos2 = pos.relative(dir);
 			BlockState state2 = w.getBlockState(pos2);
 
 			boolean reach2 = canReach(pos, pos2, state, state2, fluid, w);
-			boolean same2 = state2.getFluidState().getFluid().isEquivalentTo(fluid);
+			boolean same2 = state2.getFluidState().getType().isSame(fluid);
 			if (same2 && reach2) {
 
-				BlockPos pos2u = pos2.up();
+				BlockPos pos2u = pos2.above();
 				BlockState state2u = w.getBlockState(pos2u);
-				if (state2u.getFluidState().getFluid().isEquivalentTo(fluid)
+				if (state2u.getFluidState().getType().isSame(fluid)
 						&& canReach(pos2, pos2u, state2, state2u, fluid, w)) {
 					conner[n] = true;
 					conner[n2] = true;
@@ -311,15 +311,15 @@ public class FFluidStatic {
 					setconnervl[n] = offset2;
 					setconnervl[n2] = offset2;
 				} else {
-					float level2 = state2.getFluidState().getHeight();
+					float level2 = state2.getFluidState().getOwnHeight();
 					sum[n] += level2;
 					sum[n2] += level2;
 					count[n]++;
 					count[n2]++;
 				}
 				Direction[] dirside = new Direction[2];
-				dirside[0] = dir.rotateY();
-				dirside[1] = dir.rotateYCCW();
+				dirside[0] = dir.getClockWise();
+				dirside[1] = dir.getCounterClockWise();
 
 				for (int i = 0; i < 2; i++) {
 					if (i == 0 && (conner[n2])) {
@@ -328,15 +328,15 @@ public class FFluidStatic {
 					if (i == 1 && (conner[n])) {
 						continue;
 					}
-					BlockPos pos2dir = pos2.offset(dirside[i]);
+					BlockPos pos2dir = pos2.relative(dirside[i]);
 					BlockState state2dir = w.getBlockState(pos2dir);
 					if (canReach(pos2, pos2dir, state2, state2dir, fluid, w)) {
 
-						if (state2dir.getFluidState().getFluid().isEquivalentTo(fluid)) {
+						if (state2dir.getFluidState().getType().isSame(fluid)) {
 
-							BlockPos pos2diru = pos2dir.up();
+							BlockPos pos2diru = pos2dir.above();
 							BlockState state2diru = w.getBlockState(pos2diru);
-							if (state2diru.getFluidState().getFluid().isEquivalentTo(fluid)
+							if (state2diru.getFluidState().getType().isSame(fluid)
 									&& canReach(pos2dir, pos2diru, state2dir, state2diru, fluid, w)) {
 								if (i == 0) {
 									setconnervl[n2] = offset2;
@@ -348,7 +348,7 @@ public class FFluidStatic {
 									conner[n] = true;
 								}
 							} else {
-								float level2dir = state2dir.getFluidState().getHeight();
+								float level2dir = state2dir.getFluidState().getOwnHeight();
 								if (i == 0) {
 									sum[n2] += level2dir;
 									count[n2]++;
@@ -361,9 +361,9 @@ public class FFluidStatic {
 							}
 
 						} else if (state2dir.getFluidState().isEmpty()) {
-							BlockPos pos2dird = pos2dir.down();
+							BlockPos pos2dird = pos2dir.below();
 							BlockState state2dird = w.getBlockState(pos2dird);
-							if (state2dird.getFluidState().getFluid().isEquivalentTo(fluid)
+							if (state2dird.getFluidState().getType().isSame(fluid)
 									&& canReach(pos2dir, pos2dird, state2dir, state2dird, fluid, w)) {
 								if (i == 0) {
 									if (!setconner[n2])
@@ -383,9 +383,9 @@ public class FFluidStatic {
 			} else {
 
 				if (reach2) {
-					BlockPos pos2d = pos2.down();
+					BlockPos pos2d = pos2.below();
 					BlockState state2d = w.getBlockState(pos2d);
-					if (state2d.getFluidState().getFluid().isEquivalentTo(fluid)
+					if (state2d.getFluidState().getType().isSame(fluid)
 							&& canReach(pos2, pos2d, state2, state2d, fluid, w)) {
 						if (!setconner[n]) {
 							setconner[n] = true;
@@ -414,76 +414,76 @@ public class FFluidStatic {
 	public static float getConH(IBlockReader w, BlockPos p, Fluid f, BlockPos dir) {
 		// p = p.add(-dir.getX(), 0, -dir.getZ());
 		// Blockreader w = (Blockreader) wi;
-		BlockPos pu = p.up();
+		BlockPos pu = p.above();
 		FluidState ufs = w.getFluidState(pu);
-		if (!ufs.isEmpty() && isSameFluid(ufs.getFluid(), f)) {
+		if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
 			return 1.0f;
 		}
 		FluidState fsm = w.getFluidState(p);
 
-		float sl = fsm.getHeight();
+		float sl = fsm.getOwnHeight();
 		int i = 1;
-		BlockPos dp = p.add(dir.getX(), 0, 0);
-		BlockPos dp2 = p.add(0, 0, dir.getZ());
+		BlockPos dp = p.offset(dir.getX(), 0, 0);
+		BlockPos dp2 = p.offset(0, 0, dir.getZ());
 		FluidState dfs = w.getFluidState(dp);
 		FluidState dfs2 = w.getFluidState(dp2);
 
 		boolean s = false;
 
-		if (!dfs.isEmpty() && isSameFluid(dfs.getFluid(), f)) {
-			pu = dp.up();
+		if (!dfs.isEmpty() && isSameFluid(dfs.getType(), f)) {
+			pu = dp.above();
 			ufs = w.getFluidState(pu);
-			if (!ufs.isEmpty() && isSameFluid(ufs.getFluid(), f)) {
+			if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
 				return 1.0f;
 			}
 
-			sl += dfs.getHeight();
+			sl += dfs.getOwnHeight();
 			i++;
 			s = true;
-		} else if (dfs.isEmpty() && canReach(w, p, Direction.getFacingFromVector(dir.getX(), 0, 0))) {
-			BlockPos downp = dp.down();
+		} else if (dfs.isEmpty() && canReach(w, p, Direction.getNearest(dir.getX(), 0, 0))) {
+			BlockPos downp = dp.below();
 			FluidState downfs = w.getFluidState(downp);
-			if (!downfs.isEmpty() && isSameFluid(downfs.getFluid(), f) && downfs.getHeight() == 1.0F) {
+			if (!downfs.isEmpty() && isSameFluid(downfs.getType(), f) && downfs.getOwnHeight() == 1.0F) {
 				return 0.0F;
 			}
 		}
 
-		if (!dfs2.isEmpty() && isSameFluid(dfs2.getFluid(), f)) {
-			pu = dp2.up();
+		if (!dfs2.isEmpty() && isSameFluid(dfs2.getType(), f)) {
+			pu = dp2.above();
 			ufs = w.getFluidState(pu);
-			if (!ufs.isEmpty() && isSameFluid(ufs.getFluid(), f)) {
+			if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
 				return 1.0f;
 			}
 
-			sl += dfs2.getHeight();
+			sl += dfs2.getOwnHeight();
 			i++;
 			s = true;
-		} else if (dfs2.isEmpty() && canReach(w, p, Direction.getFacingFromVector(0, 0, dir.getZ()))) {
-			BlockPos downp = dp2.down();
+		} else if (dfs2.isEmpty() && canReach(w, p, Direction.getNearest(0, 0, dir.getZ()))) {
+			BlockPos downp = dp2.below();
 			FluidState downfs = w.getFluidState(downp);
-			if (!downfs.isEmpty() && isSameFluid(downfs.getFluid(), f) && downfs.getHeight() == 1.0F) {
+			if (!downfs.isEmpty() && isSameFluid(downfs.getType(), f) && downfs.getOwnHeight() == 1.0F) {
 				return 0.0F;
 			}
 		}
 
 		if (s) {
-			BlockPos dp3 = p.add(dir);
+			BlockPos dp3 = p.offset(dir);
 			FluidState dfs3 = w.getFluidState(dp3);
 
-			if (!dfs3.isEmpty() && isSameFluid(dfs3.getFluid(), f)) {
-				pu = dp3.up();
+			if (!dfs3.isEmpty() && isSameFluid(dfs3.getType(), f)) {
+				pu = dp3.above();
 				ufs = w.getFluidState(pu);
-				if (!ufs.isEmpty() && isSameFluid(ufs.getFluid(), f)) {
+				if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
 					return 1.0f;
 				}
 
-				sl += dfs3.getHeight();
+				sl += dfs3.getOwnHeight();
 				i++;
 			} else if (dfs3.isEmpty()) {
-				BlockPos downp = dp3.down();
+				BlockPos downp = dp3.below();
 				FluidState downfs = w.getFluidState(downp);
-				if (!downfs.isEmpty() && isSameFluid(downfs.getFluid(), f) && downfs.getHeight() == 1.0F
-						&& canReach(w, dp3, Direction.getFacingFromVector(0, 1, 0))) {
+				if (!downfs.isEmpty() && isSameFluid(downfs.getType(), f) && downfs.getOwnHeight() == 1.0F
+						&& canReach(w, dp3, Direction.getNearest(0, 1, 0))) {
 					return 0.0F;
 				}
 			}
@@ -494,23 +494,23 @@ public class FFluidStatic {
 	// ================= UTIL ================== //
 	private static boolean canReach(IBlockReader world, BlockPos pos, Direction direction) {
 		BlockState state1 = world.getBlockState(pos);
-		BlockState state2 = world.getBlockState(pos.offset(direction));
-		if (state2.isSolid() && !(state2.getBlock() instanceof IWaterLoggable)) {
+		BlockState state2 = world.getBlockState(pos.relative(direction));
+		if (state2.canOcclude() && !(state2.getBlock() instanceof IWaterLoggable)) {
 			return false;
 		}
-		VoxelShape voxelShape2 = state2.getCollisionShape(world, pos.offset(direction));
+		VoxelShape voxelShape2 = state2.getCollisionShape(world, pos.relative(direction));
 		VoxelShape voxelShape1 = state1.getCollisionShape(world, pos);
 		if (voxelShape1.isEmpty() && voxelShape2.isEmpty()) {
 			return true;
 		}
-		return !VoxelShapes.doAdjacentCubeSidesFillSquare(voxelShape1, voxelShape2, direction);
+		return !VoxelShapes.mergedFaceOccludes(voxelShape1, voxelShape2, direction);
 	}
 
 	public static boolean canReach(BlockPos pos1, BlockPos pos2, BlockState state1, BlockState state2, Fluid fluid,
 			IBlockReader w) {
 
-		Fluid f2 = state2.getFluidState().getFluid();
-		if (f2.isEquivalentTo(fluid) && state1.getBlock() instanceof FlowingFluidBlock
+		Fluid f2 = state2.getFluidState().getType();
+		if (f2.isSame(fluid) && state1.getBlock() instanceof FlowingFluidBlock
 				&& state2.getBlock() instanceof FlowingFluidBlock) {
 			return true;
 		}
@@ -531,12 +531,12 @@ public class FFluidStatic {
 			} else if (fp2.isPassable == -1) {
 				return false;
 			}
-			if ((state2.getFluidState().isEmpty() || state1.getFluidState().canDisplace(w, pos1, f2, dir))
+			if ((state2.getFluidState().isEmpty() || state1.getFluidState().canBeReplacedWith(w, pos1, f2, dir))
 					&& fp2.isDestroyableBy(fluid))
 				return true;
 		}
 
-		if (state2.isSolid() && !posos && !(state2.getBlock() instanceof IWaterLoggable)) {
+		if (state2.canOcclude() && !posos && !(state2.getBlock() instanceof IWaterLoggable)) {
 			return false;
 		}
 		if (!(fluid instanceof WaterFluid)
@@ -548,7 +548,7 @@ public class FFluidStatic {
 		if ((voxelShape1.isEmpty() || posos) && voxelShape2.isEmpty()) {
 			return true;
 		}
-		return !VoxelShapes.doAdjacentCubeSidesFillSquare(voxelShape1, voxelShape2, dir);
+		return !VoxelShapes.mergedFaceOccludes(voxelShape1, voxelShape2, dir);
 	}
 
 	public static boolean canOnlyFullCube(BlockState bs) {
@@ -592,24 +592,24 @@ public class FFluidStatic {
 			return;
 		}
 		BlockRayTraceResult targB = (BlockRayTraceResult) targ;
-		BlockPos pos = targB.getPos();
+		BlockPos pos = targB.getBlockPos();
 		BlockState bs = w.getBlockState(pos);
 		FluidState fs = bs.getFluidState();
 		if (fs.isEmpty() && f != Fluids.EMPTY && !(bs.getBlock() instanceof IWaterLoggable)) {
-			pos = pos.offset(targB.getFace());
+			pos = pos.relative(targB.getDirection());
 			bs = w.getBlockState(pos);
 			fs = bs.getFluidState();
 		} 
-		if (!w.isRemote && f != Fluids.EMPTY && bs.getBlock() instanceof IWaterLoggable) {
+		if (!w.isClientSide && f != Fluids.EMPTY && bs.getBlock() instanceof IWaterLoggable) {
 			FluidTasksManager.addFluidTask((ServerWorld) w, pos, bs);
 		}
-		Fluid fluid = fs.getFluid();
-		if ((!f.isEquivalentTo(Fluids.WATER) && f != Fluids.EMPTY) && bs.getBlock() instanceof IWaterLoggable) {
+		Fluid fluid = fs.getType();
+		if ((!f.isSame(Fluids.WATER) && f != Fluids.EMPTY) && bs.getBlock() instanceof IWaterLoggable) {
 
 			return;
 		}
 
-		if (!(w.isBlockModifiable(p, pos) && p.canPlayerEdit(pos, targB.getFace(), bh.getContainer()))) {
+		if (!(w.mayInteract(p, pos) && p.mayUseItemAt(pos, targB.getDirection(), bh.getContainer()))) {
 			return;
 		}
 
@@ -619,7 +619,7 @@ public class FFluidStatic {
 			}
 			if (targ0.getType() == RayTraceResult.Type.BLOCK) {
 				BlockRayTraceResult targB0 = (BlockRayTraceResult) targ0;
-				FluidState fs0 = w.getFluidState(targB0.getPos());
+				FluidState fs0 = w.getFluidState(targB0.getBlockPos());
 				if (fs0.isSource()) {
 					return;
 				}
@@ -628,21 +628,21 @@ public class FFluidStatic {
 			iterateFluidWay(WPOConfig.COMMON.maxBucketDist.get(), pos, filler);
 
 		} else {
-			if (!f.isEquivalentTo(fluid) && fluid != Fluids.EMPTY) {
+			if (!f.isSame(fluid) && fluid != Fluids.EMPTY) {
 				e.setCanceled(true);
 				return;
 			}
 			BucketFlusher flusher = new BucketFlusher(w, f, bh, e);
 			if (iterateFluidWay(WPOConfig.COMMON.maxBucketDist.get(), pos, flusher) && fishItem != null) {
-				fishItem.onLiquidPlaced(w, bucket, pos);
+				fishItem.checkExtraContent(w, bucket, pos);
 			}			
 		}
 	}
 
 	public static BlockRayTraceResult rayTrace(World worldIn, PlayerEntity player,
 			RayTraceContext.FluidMode fluidMode) {
-		float f = player.rotationPitch;
-		float f1 = player.rotationYaw;
+		float f = player.xRot;
+		float f1 = player.yRot;
 		Vector3d vector3d = player.getEyePosition(1.0F);
 		float f2 = MathHelper.cos(-f1 * ((float) Math.PI / 180F) - (float) Math.PI);
 		float f3 = MathHelper.sin(-f1 * ((float) Math.PI / 180F) - (float) Math.PI);
@@ -652,7 +652,7 @@ public class FFluidStatic {
 		float f7 = f2 * f4;
 		double d0 = player.getAttribute(net.minecraftforge.common.ForgeMod.REACH_DISTANCE.get()).getValue();
 		Vector3d vector3d1 = vector3d.add((double) f6 * d0, (double) f5 * d0, (double) f7 * d0);
-		return worldIn.rayTraceBlocks(
+		return worldIn.clip(
 				new RayTraceContext(vector3d, vector3d1, RayTraceContext.BlockMode.OUTLINE, fluidMode, player));
 	}
 
@@ -664,8 +664,8 @@ public class FFluidStatic {
 		Set<BlockPos> setBan = new HashSet<>();
 		Set<BlockPos> setAll = new HashSet<>();
 		client = wws == null;
-		if (!client && setBan.add(pos) && !wws.banPos(pos.toLong())) {
-			setBan.forEach(p -> wws.banPos(p.toLong()));
+		if (!client && setBan.add(pos) && !wws.banPos(pos.asLong())) {
+			setBan.forEach(p -> wws.banPos(p.asLong()));
 			///wws.unbanPoses(setBan);
 			return false;
 		}
@@ -681,9 +681,9 @@ public class FFluidStatic {
 					frst = false;
 					setAll.add(posn);
 					BlockState bs = w.getBlockState(posn);
-					if (!client && setBan.add(posn) && !wws.banPos(posn.toLong())) {
+					if (!client && setBan.add(posn) && !wws.banPos(posn.asLong())) {
 						//wws.unbanPoses(setBan);
-						setBan.forEach(p -> wws.unbanPos(p.toLong()));
+						setBan.forEach(p -> wws.unbanPos(p.asLong()));
 						return false;
 					}
 					actioner.run(posn, bs);
@@ -694,7 +694,7 @@ public class FFluidStatic {
 					break;
 				}
 				for (Direction dir : getRandomizedDirections(w.getRandom(), true)) {
-					BlockPos pos2 = posn.offset(dir);
+					BlockPos pos2 = posn.relative(dir);
 					if (setAll.contains(pos2)) {
 						continue;
 					}
@@ -704,9 +704,9 @@ public class FFluidStatic {
 					if (cr && eq) {
 						setLocal2.add(pos2);
 						if (actioner.isValidPos(pos2)) {
-							if (!client && setBan.add(pos2) && !wws.banPos(pos2.toLong())) {
+							if (!client && setBan.add(pos2) && !wws.banPos(pos2.asLong())) {
 								//wws.unbanPoses(setBan);
-								setBan.forEach(p -> wws.unbanPos(p.toLong()));
+								setBan.forEach(p -> wws.unbanPos(p.asLong()));
 								return false;
 							}
 							actioner.run(pos2, bs2);
@@ -739,13 +739,13 @@ public class FFluidStatic {
 			actioner.finish();
 			if (!client)
 				//wws.unbanPoses(setBan);
-				setBan.forEach(p -> wws.unbanPos(p.toLong()));
+				setBan.forEach(p -> wws.unbanPos(p.asLong()));
 			return true;
 		} else {
 			actioner.fail();
 			if (!client)
 				//wws.unbanPoses(setBan);
-				setBan.forEach(p -> wws.unbanPos(p.toLong()));
+				setBan.forEach(p -> wws.unbanPos(p.asLong()));
 			return false;
 		}
 	}
@@ -778,21 +778,21 @@ public class FFluidStatic {
 			// world.addParticle(ParticleTypes.CLOUD, pos.getX() + 0.5, pos.getY() + 0.5,
 			// pos.getZ() + 0.5, 0, 0, 0);
 
-			if (canOnlyFullCube(state) && state.get(BlockStateProperties.WATERLOGGED)) {
+			if (canOnlyFullCube(state) && state.getValue(BlockStateProperties.WATERLOGGED)) {
 				states.clear();
-				states.put(pos.toLong(), getUpdatedState(state, 0, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, 0, fluid));
 				complete = true;
 				return;
 			}
 			FluidState fs = state.getFluidState();
-			int l = fs.getLevel();
+			int l = fs.getAmount();
 			sl += l;
 			int nl = 0;
 			if (sl >= bucketLevels) {
 				nl = sl - bucketLevels;
 				complete = true;
 			}
-			states.put(pos.toLong(), getUpdatedState(state, nl, fluid));
+			states.put(pos.asLong(), getUpdatedState(state, nl, fluid));
 		}
 
 		@Override
@@ -802,7 +802,7 @@ public class FFluidStatic {
 
 		@Override
 		public boolean isValidState(BlockState state) {
-			return fluid.isEquivalentTo(state.getFluidState().getFluid());
+			return fluid.isSame(state.getFluidState().getType());
 		}
 
 		@Override
@@ -813,17 +813,17 @@ public class FFluidStatic {
 			event.setResult(Result.ALLOW);
 			PlayerEntity p = event.getPlayer();
 			Item item = bucket.getContainer().getItem();
-			p.addStat(Stats.ITEM_USED.get(item));
+			p.awardStat(Stats.ITEM_USED.get(item));
 			SoundEvent soundevent = fluid.getAttributes().getFillSound();
 			if (soundevent == null)
-				soundevent = fluid.isIn(FluidTags.LAVA) ? SoundEvents.ITEM_BUCKET_FILL_LAVA
-						: SoundEvents.ITEM_BUCKET_FILL;
+				soundevent = fluid.is(FluidTags.LAVA) ? SoundEvents.BUCKET_FILL_LAVA
+						: SoundEvents.BUCKET_FILL;
 			p.playSound(soundevent, 1.0F, 1.0F);
 
-			if (!p.abilities.isCreativeMode) {
+			if (!p.abilities.instabuild) {
 				ItemStack stack = new ItemStack(net.skds.wpo.registry.Items.ADVANCED_BUCKET.get());
 				ExtendedFHIS st2 = new ExtendedFHIS(stack, 1000);
-				Fluid f2 = fluid instanceof FlowingFluid ? ((FlowingFluid) fluid).getStillFluid() : fluid;
+				Fluid f2 = fluid instanceof FlowingFluid ? ((FlowingFluid) fluid).getSource() : fluid;
 				FluidStack fluidStack = new FluidStack(f2, sl * FFluidStatic.FCONST);
 				st2.fill(fluidStack, FluidAction.EXECUTE);
 
@@ -839,15 +839,15 @@ public class FFluidStatic {
 			event.setResult(Result.ALLOW);
 			PlayerEntity p = event.getPlayer();
 			Item item = bucket.getContainer().getItem();
-			p.addStat(Stats.ITEM_USED.get(item));
+			p.awardStat(Stats.ITEM_USED.get(item));
 			SoundEvent soundevent = fluid.getAttributes().getFillSound();
 			if (soundevent == null)
-				soundevent = fluid.isIn(FluidTags.LAVA) ? SoundEvents.ITEM_BUCKET_FILL_LAVA
-						: SoundEvents.ITEM_BUCKET_FILL;
+				soundevent = fluid.is(FluidTags.LAVA) ? SoundEvents.BUCKET_FILL_LAVA
+						: SoundEvents.BUCKET_FILL;
 			p.playSound(soundevent, 1.0F, 1.0F);
-			if (!p.abilities.isCreativeMode) {
+			if (!p.abilities.instabuild) {
 				// bucket.fill(new FluidStack(fluid, 1000), FluidAction.EXECUTE);
-				event.setFilledBucket(new ItemStack(fluid.getFilledBucket()));
+				event.setFilledBucket(new ItemStack(fluid.getBucket()));
 			}
 		}
 	}
@@ -880,14 +880,14 @@ public class FFluidStatic {
 			// world.addParticle(ParticleTypes.CLOUD, pos.getX() + 0.5, pos.getY() + 0.5,
 			// pos.getZ() + 0.5, 0, 0, 0);
 
-			if (canOnlyFullCube(state) && state.get(BlockStateProperties.WATERLOGGED)) {
+			if (canOnlyFullCube(state) && state.getValue(BlockStateProperties.WATERLOGGED)) {
 				states.clear();
-				states.put(pos.toLong(), getUpdatedState(state, 0, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, 0, fluid));
 				complete = true;
 				return;
 			}
 			FluidState fs = state.getFluidState();
-			int l = fs.getLevel();
+			int l = fs.getAmount();
 			int osl = sl;
 			sl += l;
 			int nl = 0;
@@ -896,7 +896,7 @@ public class FFluidStatic {
 				complete = true;
 			}
 			if (osl != sl)
-				states.put(pos.toLong(), getUpdatedState(state, nl, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, nl, fluid));
 		}
 
 		@Override
@@ -906,7 +906,7 @@ public class FFluidStatic {
 
 		@Override
 		public boolean isValidState(BlockState state) {
-			return fluid.isEquivalentTo(state.getFluidState().getFluid());
+			return fluid.isSame(state.getFluidState().getType());
 		}
 
 		@Override
@@ -916,7 +916,7 @@ public class FFluidStatic {
 
 		@Override
 		public void fail() {
-			ci.setReturnValue(ActionResult.resultFail(bottle));
+			ci.setReturnValue(ActionResult.fail(bottle));
 		}
 	}
 
@@ -951,14 +951,14 @@ public class FFluidStatic {
 			// world.addParticle(ParticleTypes.CLOUD, pos.getX() + 0.5, pos.getY() + 0.5,
 			// pos.getZ() + 0.5, 0, 0, 0);
 
-			if (canOnlyFullCube(state) && state.hasProperty(BlockStateProperties.WATERLOGGED) && !state.get(BlockStateProperties.WATERLOGGED)) {
+			if (canOnlyFullCube(state) && state.hasProperty(BlockStateProperties.WATERLOGGED) && !state.getValue(BlockStateProperties.WATERLOGGED)) {
 				states.clear();
-				states.put(pos.toLong(), getUpdatedState(state, mfl, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, mfl, fluid));
 				complete = true;
 				return;
 			}
 			FluidState fs = state.getFluidState();
-			int el = mfl - fs.getLevel();
+			int el = mfl - fs.getAmount();
 			int osl = sl;
 			sl -= el;
 			int nl = mfl;
@@ -967,7 +967,7 @@ public class FFluidStatic {
 				complete = true;
 			}
 			if (osl != sl)
-				states.put(pos.toLong(), getUpdatedState(state, nl, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, nl, fluid));
 		}
 
 		@Override
@@ -977,7 +977,7 @@ public class FFluidStatic {
 
 		@Override
 		public boolean isValidState(BlockState state) {
-			return fluid.isEquivalentTo(state.getFluidState().getFluid()) || state.getFluidState().isEmpty();
+			return fluid.isSame(state.getFluidState().getType()) || state.getFluidState().isEmpty();
 		}
 
 		@Override
@@ -987,13 +987,13 @@ public class FFluidStatic {
 			event.setResult(Result.ALLOW);
 			PlayerEntity p = event.getPlayer();
 			Item item = bucket.getContainer().getItem();
-			p.addStat(Stats.ITEM_USED.get(item));
+			p.awardStat(Stats.ITEM_USED.get(item));
 			SoundEvent soundevent = fluid.getAttributes().getEmptySound();
 			if (soundevent == null)
-				soundevent = fluid.isIn(FluidTags.LAVA) ? SoundEvents.ITEM_BUCKET_EMPTY_LAVA
-						: SoundEvents.ITEM_BUCKET_EMPTY;
+				soundevent = fluid.is(FluidTags.LAVA) ? SoundEvents.BUCKET_EMPTY_LAVA
+						: SoundEvents.BUCKET_EMPTY;
 			p.playSound(soundevent, 1.0F, 1.0F);
-			if (!p.abilities.isCreativeMode) {
+			if (!p.abilities.instabuild) {
 				// bucket.fill(FluidStack.EMPTY, FluidAction.EXECUTE);
 				// event.setFilledBucket(bucket.getContainer());
 				event.setFilledBucket(new ItemStack(Items.BUCKET));
@@ -1017,8 +1017,8 @@ public class FFluidStatic {
 			obs = e.getBlockSnapshot().getReplacedBlock();
 			FluidState ofs = obs.getFluidState();
 
-			fluid = ofs.getFluid();
-			sl = ofs.getLevel();
+			fluid = ofs.getType();
+			sl = ofs.getAmount();
 			world = w;
 			event = e;
 		}
@@ -1031,7 +1031,7 @@ public class FFluidStatic {
 		@Override
 		public void addZero(Set<BlockPos> set, BlockPos p0) {
 			for (Direction d : getRandomizedDirections(world.getRandom(), true)) {
-				BlockPos pos2 = p0.offset(d);
+				BlockPos pos2 = p0.relative(d);
 				BlockState state2 = world.getBlockState(pos2);
 				if (isValidState(state2) && canReach(p0, pos2, obs, state2, fluid, world)) {
 					set.add(pos2);
@@ -1049,14 +1049,14 @@ public class FFluidStatic {
 			// return;
 			// }
 
-			if (canOnlyFullCube(state) && state.hasProperty(BlockStateProperties.WATERLOGGED) && !state.get(BlockStateProperties.WATERLOGGED)) {
+			if (canOnlyFullCube(state) && state.hasProperty(BlockStateProperties.WATERLOGGED) && !state.getValue(BlockStateProperties.WATERLOGGED)) {
 				states.clear();
-				states.put(pos.toLong(), getUpdatedState(state, mfl, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, mfl, fluid));
 				complete = true;
 				return;
 			}
 			FluidState fs = state.getFluidState();
-			int el = mfl - fs.getLevel();
+			int el = mfl - fs.getAmount();
 			int osl = sl;
 			sl -= el;
 			int nl = mfl;
@@ -1065,7 +1065,7 @@ public class FFluidStatic {
 				complete = true;
 			}
 			if (osl != sl)
-				states.put(pos.toLong(), getUpdatedState(state, nl, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, nl, fluid));
 		}
 
 		@Override
@@ -1075,7 +1075,7 @@ public class FFluidStatic {
 
 		@Override
 		public boolean isValidState(BlockState state) {
-			return fluid.isEquivalentTo(state.getFluidState().getFluid()) || state.getFluidState().isEmpty();
+			return fluid.isSame(state.getFluidState().getType()) || state.getFluidState().isEmpty();
 		}
 
 		@Override
@@ -1104,8 +1104,8 @@ public class FFluidStatic {
 		FluidDisplacer2(World w, BlockState obs) {
 			FluidState ofs = obs.getFluidState();
 			this.obs = obs;
-			fluid = ofs.getFluid();
-			sl = ofs.getLevel();
+			fluid = ofs.getType();
+			sl = ofs.getAmount();
 			world = w;
 		}
 
@@ -1117,7 +1117,7 @@ public class FFluidStatic {
 		@Override
 		public void addZero(Set<BlockPos> set, BlockPos p0) {
 			for (Direction d : getRandomizedDirections(world.getRandom(), true)) {
-				BlockPos pos2 = p0.offset(d);
+				BlockPos pos2 = p0.relative(d);
 				BlockState state2 = world.getBlockState(pos2);
 				if (isValidState(state2) && canReach(p0, pos2, obs, state2, fluid, world)) {
 					set.add(pos2);
@@ -1135,14 +1135,14 @@ public class FFluidStatic {
 			// return;
 			// }
 
-			if (canOnlyFullCube(state) && state.hasProperty(BlockStateProperties.WATERLOGGED) && !state.get(BlockStateProperties.WATERLOGGED)) {
+			if (canOnlyFullCube(state) && state.hasProperty(BlockStateProperties.WATERLOGGED) && !state.getValue(BlockStateProperties.WATERLOGGED)) {
 				states.clear();
-				states.put(pos.toLong(), getUpdatedState(state, mfl, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, mfl, fluid));
 				complete = true;
 				return;
 			}
 			FluidState fs = state.getFluidState();
-			int el = mfl - fs.getLevel();
+			int el = mfl - fs.getAmount();
 			int osl = sl;
 			sl -= el;
 			int nl = mfl;
@@ -1151,7 +1151,7 @@ public class FFluidStatic {
 				complete = true;
 			}
 			if (osl != sl)
-				states.put(pos.toLong(), getUpdatedState(state, nl, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, nl, fluid));
 		}
 
 		@Override
@@ -1161,7 +1161,7 @@ public class FFluidStatic {
 
 		@Override
 		public boolean isValidState(BlockState state) {
-			return fluid.isEquivalentTo(state.getFluidState().getFluid()) || state.getFluidState().isEmpty();
+			return fluid.isSame(state.getFluidState().getType()) || state.getFluidState().isEmpty();
 		}
 
 		@Override
@@ -1193,15 +1193,15 @@ public class FFluidStatic {
 			this.obs = os;
 			FluidState ofs = obs.getFluidState();
 			// this.ps = ps;
-			this.fluid = ofs.getFluid();
-			this.sl = ofs.getLevel();
+			this.fluid = ofs.getType();
+			this.sl = ofs.getAmount();
 			this.world = w;
 			this.event = e;
-			movepos.addAll(ps.getBlocksToDestroy());
-			movepos.addAll(ps.getBlocksToMove());
-			for (BlockPos p : ps.getBlocksToMove()) {
-				movepos.add(p.offset(event.getDirection()));
-				// System.out.println(p.offset(event.getDirection()));
+			movepos.addAll(ps.getToDestroy());
+			movepos.addAll(ps.getToPush());
+			for (BlockPos p : ps.getToPush()) {
+				movepos.add(p.relative(event.getDirection()));
+				// System.out.println(p.relative(event.getDirection()));
 			}
 		}
 
@@ -1213,7 +1213,7 @@ public class FFluidStatic {
 		@Override
 		public void addZero(Set<BlockPos> set, BlockPos p0) {
 			for (Direction d : getRandomizedDirections(world.getRandom(), true)) {
-				BlockPos pos2 = p0.offset(d);
+				BlockPos pos2 = p0.relative(d);
 				BlockState state2 = world.getBlockState(pos2);
 				if (isValidState(state2) && canReach(p0, pos2, obs, state2, fluid, world)) {
 					set.add(pos2);
@@ -1231,14 +1231,14 @@ public class FFluidStatic {
 			// return;
 			// }
 
-			if (canOnlyFullCube(state) && state.hasProperty(BlockStateProperties.WATERLOGGED) && !state.get(BlockStateProperties.WATERLOGGED)) {
+			if (canOnlyFullCube(state) && state.hasProperty(BlockStateProperties.WATERLOGGED) && !state.getValue(BlockStateProperties.WATERLOGGED)) {
 				states.clear();
-				states.put(pos.toLong(), getUpdatedState(state, mfl, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, mfl, fluid));
 				complete = true;
 				return;
 			}
 			FluidState fs = state.getFluidState();
-			int el = mfl - fs.getLevel();
+			int el = mfl - fs.getAmount();
 			int osl = sl;
 			sl -= el;
 			int nl = mfl;
@@ -1247,7 +1247,7 @@ public class FFluidStatic {
 				complete = true;
 			}
 			if (osl != sl)
-				states.put(pos.toLong(), getUpdatedState(state, nl, fluid));
+				states.put(pos.asLong(), getUpdatedState(state, nl, fluid));
 		}
 
 		@Override
@@ -1257,7 +1257,7 @@ public class FFluidStatic {
 
 		@Override
 		public boolean isValidState(BlockState state) {
-			return fluid.isEquivalentTo(state.getFluidState().getFluid()) || state.getFluidState().isEmpty();
+			return fluid.isSame(state.getFluidState().getType()) || state.getFluidState().isEmpty();
 		}
 
 		@Override
@@ -1281,9 +1281,9 @@ public class FFluidStatic {
 	}
 
 	public static void fillStates(Long2ObjectLinkedOpenHashMap<BlockState> states, World world) {
-		if (!world.isRemote) {
+		if (!world.isClientSide) {
 			states.forEach((lpos, state) -> {
-				world.setBlockState(BlockPos.fromLong(lpos), state);
+				world.setBlockAndUpdate(BlockPos.of(lpos), state);
 			});
 		}
 	}
@@ -1314,7 +1314,7 @@ public class FFluidStatic {
 	public static void onBottleUse(World w, PlayerEntity p, Hand hand,
 			CallbackInfoReturnable<ActionResult<ItemStack>> ci, ItemStack stack) {
 		BlockRayTraceResult rt = rayTrace(w, p, RayTraceContext.FluidMode.ANY);
-		BlockPos pos = rt.getPos();
+		BlockPos pos = rt.getBlockPos();
 
 		BottleFiller filler = new BottleFiller(w, Fluids.WATER, ci, stack);
 		iterateFluidWay(WPOConfig.COMMON.maxBucketDist.get(), pos, filler);
@@ -1325,7 +1325,7 @@ public class FFluidStatic {
 		BlockPos pos = e.getPos();
 		BlockState oldState = e.getBlockSnapshot().getReplacedBlock();
 		FluidState fs = oldState.getFluidState();
-		Fluid f = fs.getFluid();
+		Fluid f = fs.getType();
 		BlockState newState = e.getPlacedBlock();
 		Block nb = newState.getBlock();
 		if (fs.isEmpty() || nb instanceof SpongeBlock || nb instanceof WetSpongeBlock) {
@@ -1334,12 +1334,12 @@ public class FFluidStatic {
 		if (nb instanceof ILiquidContainer && !(nb instanceof IWaterLoggable)) {
 			return;
 		}
-		if (nb instanceof IWaterLoggable && newState.get(BlockStateProperties.WATERLOGGED)) {
+		if (nb instanceof IWaterLoggable && newState.getValue(BlockStateProperties.WATERLOGGED)) {
 			return;
 		}
-		if (!canOnlyFullCube(newState) && nb instanceof IBaseWL && f.isEquivalentTo(Fluids.WATER)) {
-			newState = getUpdatedState(newState, fs.getLevel(), Fluids.WATER);
-			w.setBlockState(pos, newState);
+		if (!canOnlyFullCube(newState) && nb instanceof IBaseWL && f.isSame(Fluids.WATER)) {
+			newState = getUpdatedState(newState, fs.getAmount(), Fluids.WATER);
+			w.setBlockAndUpdate(pos, newState);
 			return;
 		}
 
@@ -1351,15 +1351,15 @@ public class FFluidStatic {
 
 	public static void onPistonPre(PistonEvent.Pre e) {
 		World w = (World) e.getWorld();
-		if (w.isRemote || e.isCanceled()) {
+		if (w.isClientSide || e.isCanceled()) {
 			return;
 		}
 		PistonBlockStructureHelper ps = e.getStructureHelper();
 
-		if (!ps.canMove()) {
+		if (!ps.resolve()) {
 			return;
 		}
-		List<BlockPos> poslist = ps.getBlocksToDestroy();
+		List<BlockPos> poslist = ps.getToDestroy();
 
 		for (BlockPos pos : poslist) {
 			BlockState state = w.getBlockState(pos);

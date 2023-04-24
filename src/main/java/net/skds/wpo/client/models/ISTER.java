@@ -66,7 +66,7 @@ public class ISTER extends ItemStackTileEntityRenderer {
 	}
 
 	@Override
-	public void func_239207_a_(ItemStack stack, TransformType p_239207_2_, MatrixStack matrixStack,
+	public void renderByItem(ItemStack stack, TransformType p_239207_2_, MatrixStack matrixStack,
 			IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
 		TileEntity tileentity;
 
@@ -99,7 +99,7 @@ public class ISTER extends ItemStackTileEntityRenderer {
 					IFluidHandlerItem handler = op.get();
 					Fluid f = handler.getFluidInTank(0).getFluid();
 					if (f != Fluids.EMPTY) {
-						stack2 = new ItemStack(f.getFilledBucket(), 1);						
+						stack2 = new ItemStack(f.getBucket(), 1);
 					} else {
 						stack2 = new ItemStack(Items.BUCKET, 1);
 					}
@@ -107,8 +107,8 @@ public class ISTER extends ItemStackTileEntityRenderer {
 					stack2 = new ItemStack(Items.BUCKET, 1);
 				}
 				//System.out.println(stack);
-				IBakedModel ibakedmodel = this.itemRenderer.getItemModelWithOverrides(stack2, mc.world, null);
-				itemRenderer.renderItem(stack2, TransformType.NONE, false, matrixStack, buffer, combinedLight,
+				IBakedModel ibakedmodel = this.itemRenderer.getModel(stack2, mc.level, null);
+				itemRenderer.render(stack2, TransformType.NONE, false, matrixStack, buffer, combinedLight,
 						OverlayTexture.NO_OVERLAY, ibakedmodel);
 			}
 		}

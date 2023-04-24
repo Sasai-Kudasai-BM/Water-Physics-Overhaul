@@ -24,11 +24,11 @@ public class FluidGateBlock extends DirectionalBlock {
 
 	public FluidGateBlock(Properties properties) {
 		super(properties);
-		this.setDefaultState(this.stateContainer.getBaseState().with(POWERED, Boolean.valueOf(false)));
+		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, Boolean.valueOf(false)));
 	}
 
 	public static FluidGateBlock getForReg() {
-		Properties prop = Properties.create(Material.IRON).setRequiresTool().setOpaque(opa).notSolid().hardnessAndResistance(0.5F);
+		Properties prop = Properties.of(Material.METAL).requiresCorrectToolForDrops().isRedstoneConductor(opa).noOcclusion().strength(0.5F);
 		return new FluidGateBlock(prop);
 	}
 
@@ -40,7 +40,7 @@ public class FluidGateBlock extends DirectionalBlock {
 	};
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder) {
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
 		// builder.add(FFL, WATERLOGGED, FACING);
 		builder.add(FACING, POWERED);
 	}
@@ -48,12 +48,12 @@ public class FluidGateBlock extends DirectionalBlock {
 	@Override
 	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos,
 			boolean isMoving) {
-		boolean flag = worldIn.isBlockPowered(pos);
-		boolean flag1 = state.get(POWERED);
+		boolean flag = worldIn.hasNeighborSignal(pos);
+		boolean flag1 = state.getValue(POWERED);
 		if (flag && !flag1) {
-			worldIn.setBlockState(pos, state.with(POWERED, Boolean.valueOf(true)), 6);
+			worldIn.setBlock(pos, state.setValue(POWERED, Boolean.valueOf(true)), 6);
 		} else if (!flag && flag1) {
-			worldIn.setBlockState(pos, state.with(POWERED, Boolean.valueOf(false)), 6);
+			worldIn.setBlock(pos, state.setValue(POWERED, Boolean.valueOf(false)), 6);
 		}
 
 	}
@@ -76,8 +76,8 @@ public class FluidGateBlock extends DirectionalBlock {
 	}
 
 	@Override
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader reader, BlockPos pos) {
-		return VoxelShapes.fullCube();
+	public VoxelShape getBlockSupportShape(BlockState state, IBlockReader reader, BlockPos pos) {
+		return VoxelShapes.block();
 		// switch (state.get(FACING)) {
 		// case UP:
 		// return U_AABB;
@@ -98,24 +98,24 @@ public class FluidGateBlock extends DirectionalBlock {
 
 	@Override
 	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-		return getCollisionShape(state, worldIn, pos);
+		return getBlockSupportShape(state, worldIn, pos);
 	}
 
 	@Override
 	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos,
 			ISelectionContext context) {
-		return getCollisionShape(state, worldIn, pos);
+		return getBlockSupportShape(state, worldIn, pos);
 	}
 
 	@Override
 	public BlockState getStateForPlacement(BlockItemUseContext context) {
-		boolean sneak = context.getPlayer().isSneaking();
+		boolean sneak = context.getPlayer().isShiftKeyDown();
 		Direction dir = context.getNearestLookingDirection();
-		return this.getDefaultState().with(FACING, sneak ? dir.getOpposite() : dir);
+		return this.defaultBlockState().setValue(FACING, sneak ? dir.getOpposite() : dir);
 	}
 
 	@Override
-	public boolean isTransparent(BlockState state) {
+	public boolean useShapeForLightOcclusion(BlockState state) {
 		return true;
 	}
 }

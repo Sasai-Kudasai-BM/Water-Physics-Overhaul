@@ -29,11 +29,11 @@ public class PipeBlock extends Block implements IWaterLoggable, IBaseWL {
 
 	public PipeBlock(Properties properties) {
 		super(properties);
-		this.setDefaultState(this.stateContainer.getBaseState().with(FFL, 0).with(WATERLOGGED, Boolean.valueOf(false)));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FFL, 0).setValue(WATERLOGGED, Boolean.valueOf(false)));
 	}
 
 	public static PipeBlock getForReg() {
-		Properties prop = Properties.create(Material.IRON).setRequiresTool().setOpaque(opa).notSolid().hardnessAndResistance(0.5F);
+		Properties prop = Properties.of(Material.METAL).requiresCorrectToolForDrops().isRedstoneConductor(opa).noOcclusion().strength(0.5F);
 		return new PipeBlock(prop);
 	}
 
@@ -45,7 +45,7 @@ public class PipeBlock extends Block implements IWaterLoggable, IBaseWL {
 	};
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder) {
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
 		builder.add(FFL, WATERLOGGED);
 	}
 
@@ -60,11 +60,11 @@ public class PipeBlock extends Block implements IWaterLoggable, IBaseWL {
 	}
 
 	@Override
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader reader, BlockPos pos) {
-		PipeTileEntity te = (PipeTileEntity) reader.getTileEntity(pos);
+	public VoxelShape getBlockSupportShape(BlockState state, IBlockReader reader, BlockPos pos) {
+		PipeTileEntity te = (PipeTileEntity) reader.getBlockEntity(pos);
 		VoxelShape shape;
 		if (te == null) {
-			shape = VoxelShapes.create(0.01, 0.01, 0.01, 0.99, 0.99, 0.99);
+			shape = VoxelShapes.box(0.01, 0.01, 0.01, 0.99, 0.99, 0.99);
 		} else {
 			shape = te.getShape();
 		}
@@ -73,22 +73,22 @@ public class PipeBlock extends Block implements IWaterLoggable, IBaseWL {
 
 	@Override
 	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-		return getCollisionShape(state, worldIn, pos);
+		return getBlockSupportShape(state, worldIn, pos);
 	}
 
 	@Override
 	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos,
 			ISelectionContext context) {
-		return getCollisionShape(state, worldIn, pos);
+		return getBlockSupportShape(state, worldIn, pos);
 	}
 
 	@Override
 	public BlockState getStateForPlacement(BlockItemUseContext context) {
-		return this.getDefaultState();
+		return this.defaultBlockState();
 	}
 	
 	@Override
-	public boolean isTransparent(BlockState state) {
+	public boolean useShapeForLightOcclusion(BlockState state) {
 		return true;
 	}    
 
@@ -99,19 +99,19 @@ public class PipeBlock extends Block implements IWaterLoggable, IBaseWL {
 	}
 	
 	@Override
-    public BlockState updatePostPlacement(BlockState state, Direction direction, BlockState neighbourState, IWorld world, BlockPos pos, BlockPos neighbourPos) {
+    public BlockState updateShape(BlockState state, Direction direction, BlockState neighbourState, IWorld world, BlockPos pos, BlockPos neighbourPos) {
 
 		updateConntections(world, pos);
         return state;
     }
 
 	@Override
-	public void onBlockAdded(BlockState state, World worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
+	public void onPlace(BlockState state, World worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
 		updateConntections(worldIn, pos);
 	}
 
 	public void updateConntections(IWorld world, BlockPos pos) {		
-		PipeTileEntity thisEntity = (PipeTileEntity) world.getTileEntity(pos);
+		PipeTileEntity thisEntity = (PipeTileEntity) world.getBlockEntity(pos);
 		if (thisEntity != null) {
 			thisEntity.updateConntections();
 		}

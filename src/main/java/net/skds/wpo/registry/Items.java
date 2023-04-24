@@ -20,20 +20,20 @@ public class Items {
     public static final ItemGroup CTAB = (new ItemGroup(ItemGroup.getGroupCountSafe(), "WPO") {
     
         @Override
-        public ItemStack createIcon() {
+        public ItemStack makeIcon() {
             return new ItemStack(ADVANCED_BUCKET.get());
         }
-    }).setGroupPath("wpo");
+    }).setRecipeFolderName("wpo");
 
 
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, WPO.MOD_ID);
     
 	public static final RegistryObject<Item> ADVANCED_BUCKET = ITEMS.register("advanced_bucket", () -> AdvancedBucket.getBucketForReg(Fluids.EMPTY));
 
-	public static final RegistryObject<BlockItem> GATE = registerBlockItem(FBlocks.GATE, new Properties().group(CTAB));
-	public static final RegistryObject<BlockItem> PIPE_PUMP = registerBlockItem(FBlocks.PIPE_PUMP, new Properties().group(CTAB).setISTER(() -> ISTER.call()));
-	public static final RegistryObject<BlockItem> PUMP = registerBlockItem(FBlocks.PUMP, new Properties().group(CTAB).setISTER(() -> ISTER.call()));
-	public static final RegistryObject<BlockItem> PIPE = registerBlockItem(FBlocks.PIPE, new Properties().group(CTAB).setISTER(() -> ISTER.call()));
+	public static final RegistryObject<BlockItem> GATE = registerBlockItem(FBlocks.GATE, new Properties().tab(CTAB));
+	public static final RegistryObject<BlockItem> PIPE_PUMP = registerBlockItem(FBlocks.PIPE_PUMP, new Properties().tab(CTAB).setISTER(() -> ISTER.call()));
+	public static final RegistryObject<BlockItem> PUMP = registerBlockItem(FBlocks.PUMP, new Properties().tab(CTAB).setISTER(() -> ISTER.call()));
+	public static final RegistryObject<BlockItem> PIPE = registerBlockItem(FBlocks.PIPE, new Properties().tab(CTAB).setISTER(() -> ISTER.call()));
 	
     private static RegistryObject<BlockItem> registerBlockItem(RegistryObject<Block> ro, Properties prop) {
         return ITEMS.register(ro.getId().getPath(), () -> new BlockItem(ro.get(), prop));
