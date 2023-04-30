@@ -2,32 +2,32 @@ package net.skds.wpo.mixins.fluids;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.renderer.FluidBlockRenderer;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockDisplayReader;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.block.LiquidBlockRenderer;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.BlockGetter;
 import net.skds.wpo.fluidphysics.FFluidStatic;
 
-@Mixin(value = { FluidBlockRenderer.class })
+@Mixin(value = { LiquidBlockRenderer.class })
 public class FluidBlockRendererMixin {
 
 	ConcurrentHashMap<Long, float[]> customAH = new ConcurrentHashMap<>();
 	float[] customAHSafe = new float[4];
 	// render(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z
 
-	@Redirect(method = "tesselate(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getWaterHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 0))
-	public float gc(FluidBlockRenderer fr, IBlockReader w, BlockPos p, Fluid f) {
+	@Redirect(method = "tesselate", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getWaterHeight(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;)F", ordinal = 0))
+	public float gc(LiquidBlockRenderer fr, BlockGetter w, BlockPos p, Fluid f) {
 
 		float[] flex = FFluidStatic.getConH(w, p, f);
 		customAH.put(p.asLong(), flex);
@@ -36,8 +36,8 @@ public class FluidBlockRendererMixin {
 
 	}
 
-	@Redirect(method = "tesselate(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getWaterHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 1))
-	public float gc1(FluidBlockRenderer fr, IBlockReader w, BlockPos p, Fluid f) {
+	@Redirect(method = "tesselate", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getWaterHeight(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;)F", ordinal = 1))
+	public float gc1(LiquidBlockRenderer fr, BlockGetter w, BlockPos p, Fluid f) {
 
 		float[] ffmas = customAH.get(p.north().asLong());
 		if (ffmas == null) {
@@ -48,8 +48,8 @@ public class FluidBlockRendererMixin {
 
 	}
 
-	@Redirect(method = "tesselate(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getWaterHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 2))
-	public float gc2(FluidBlockRenderer fr, IBlockReader w, BlockPos p, Fluid f) {
+	@Redirect(method = "tesselate", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getWaterHeight(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;)F", ordinal = 2))
+	public float gc2(LiquidBlockRenderer fr, BlockGetter w, BlockPos p, Fluid f) {
 
 		float[] ffmas = customAH.get(p.north().west().asLong());
 		if (ffmas == null) {
@@ -60,8 +60,8 @@ public class FluidBlockRendererMixin {
 
 	}
 
-	@Redirect(method = "tesselate(Lnet/minecraft/world/IBlockDisplayReader;Lnet/minecraft/util/math/BlockPos;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Lnet/minecraft/fluid/FluidState;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FluidBlockRenderer;getWaterHeight(Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/fluid/Fluid;)F", ordinal = 3))
-	public float gc3(FluidBlockRenderer fr, IBlockReader w, BlockPos p, Fluid f) {
+	@Redirect(method = "tesselate", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/block/LiquidBlockRenderer;getWaterHeight(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;)F", ordinal = 3))
+	public float gc3(LiquidBlockRenderer fr, BlockGetter w, BlockPos p, Fluid f) {
 
 		float[] ffmas = customAH.remove(p.west().asLong());
 		if (ffmas == null) {
@@ -140,28 +140,28 @@ public class FluidBlockRendererMixin {
 	// ==================
 
 	@Shadow
-	private void vertexVanilla(IVertexBuilder vertexBuilderIn, double x, double y, double z, float red, float green,
+	private void vertex(VertexConsumer vertexBuilderIn, double x, double y, double z, float red, float green,
 							   float blue, float alpha, float u, float v, int packedLight) {
 	}
 
 	@Shadow
-	private int getLightColor(IBlockDisplayReader lightReaderIn, BlockPos posIn) {
+	private int getLightColor(BlockAndTintGetter lightReaderIn, BlockPos posIn) {
 		return 0;
 	}
 
 	@Shadow
-	private static boolean isFaceOccludedByNeighbor(IBlockReader lightReaderIn, BlockPos posIn, Direction down, float f) {
+	private static boolean isFaceOccludedByNeighbor(BlockGetter lightReaderIn, BlockPos posIn, Direction down, float f) {
 		return false;
 	}
 
 	@Shadow
-	private static boolean shouldRenderFace(IBlockDisplayReader lightReaderIn, BlockPos posIn, FluidState fluidStateIn,
+	private static boolean shouldRenderFace(BlockAndTintGetter lightReaderIn, BlockPos posIn, FluidState fluidStateIn,
 			BlockState blockstate, Direction down) {
 		return false;
 	}
 
 	@Shadow
-	private static boolean isNeighborSameFluid(IBlockReader lightReaderIn, BlockPos posIn, Direction up,
+	private static boolean isNeighborSameFluid(BlockGetter lightReaderIn, BlockPos posIn, Direction up,
 			FluidState fluidStateIn) {
 		return false;
 	}

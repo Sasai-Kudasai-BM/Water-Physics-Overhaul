@@ -1,94 +1,86 @@
 package net.skds.wpo.client.models;
 
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.block.Block;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.tileentity.ItemStackTileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.skds.wpo.block.PipeBlock;
+import net.skds.wpo.block.PumpBlock;
 import net.skds.wpo.item.AdvancedBucket;
 import net.skds.wpo.registry.FBlocks;
-import net.skds.wpo.tileentity.PipePumpTileEntity;
-import net.skds.wpo.tileentity.PipeTileEntity;
-import net.skds.wpo.tileentity.PumpTileEntity;
+import net.skds.wpo.block.entity.PipePumpBlockEntity;
+import net.skds.wpo.block.entity.PipeBlockEntity;
+import net.skds.wpo.block.entity.PumpBlockEntity;
 
 @OnlyIn(Dist.CLIENT)
-public class ISTER extends ItemStackTileEntityRenderer {
+public class ISTER extends BlockEntityWithoutLevelRenderer {
+	private final PipeBlockEntity pipeBlockEntity = new PipeBlockEntity(BlockPos.ZERO, FBlocks.PIPE.get().defaultBlockState());
+	private final PumpBlockEntity pumpBlockEntity = new PumpBlockEntity(BlockPos.ZERO, FBlocks.PUMP.get().defaultBlockState());
+	private final PipePumpBlockEntity pipePumpBlockEntity = new PipePumpBlockEntity(BlockPos.ZERO, FBlocks.PIPE_PUMP.get().defaultBlockState());
 
-	private PipeTileEntity pipeTileEntity;
-	private PumpTileEntity pumpTileEntity;
-	private PipePumpTileEntity pipePumpTileEntity;
-
-	private ItemRenderer itemRenderer;
-	private Minecraft mc;
-
-	private boolean firstCall = true;
+	private final ItemRenderer itemRenderer;
+	private final BlockEntityRenderDispatcher blockEntityRenderDispatcher;
 
 	private static ISTER instance = null;
 
-	public ISTER() {
-		this.mc = Minecraft.getInstance();
+	private ISTER() {
+		super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
+
+		this.itemRenderer = Minecraft.getInstance().getItemRenderer();
+		blockEntityRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
+		// why do we need these custom block states?
+		this.pipeBlockEntity.boolConnections = new boolean[] { false, false, true, true, false, false };
+		this.pipePumpBlockEntity.facing = Direction.NORTH;
+		this.pipePumpBlockEntity.anim = -1;
 	}
 
-	public static Callable<ItemStackTileEntityRenderer> callable = new Callable<ItemStackTileEntityRenderer>(){
-	
-		@Override
-		public ISTER call() throws Exception {
-			if (instance == null) {
-				instance = new ISTER();
-			}
-			return instance;
+	public static ISTER getInstance(){
+		if (instance == null) {
+			instance = new ISTER();
 		}
-	};
-
-	public static Callable<ItemStackTileEntityRenderer> call() {
-		return callable;
+		return instance;
 	}
 
 	@Override
-	public void renderByItem(ItemStack stack, TransformType p_239207_2_, MatrixStack matrixStack,
-			IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
-		TileEntity tileentity;
-
-		if (firstCall) {
-			firstCall();
-		}
+	public void renderByItem(ItemStack stack, TransformType p_239207_2_, PoseStack matrixStack,
+							 MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
+		BlockEntity blockEntity;
 
 		//System.out.println(stack);
 
 		Item item = stack.getItem();
 		if (item instanceof BlockItem) {
 			Block block = ((BlockItem) item).getBlock();
-			if (block == FBlocks.PIPE.get()) {
-				tileentity = pipeTileEntity;
-			} else if (block == FBlocks.PUMP.get()) {
-				tileentity = pumpTileEntity;
+			if (block instanceof PipeBlock) {
+				blockEntity = pipeBlockEntity;
+			} else if (block instanceof PumpBlock) {
+				blockEntity = pumpBlockEntity;
 			} else {
-
-				tileentity = pipePumpTileEntity;
+				blockEntity = pipePumpBlockEntity;
 			}
-			TileEntityRendererDispatcher.instance.renderItem(tileentity, matrixStack, buffer, combinedLight,
-					combinedOverlay);
+			this.blockEntityRenderDispatcher.renderItem(blockEntity, matrixStack, buffer, combinedLight, combinedOverlay);
 		} else {
 			if (item instanceof AdvancedBucket) {
 				matrixStack.translate(0.5, 0.5, 0.5);
@@ -107,24 +99,11 @@ public class ISTER extends ItemStackTileEntityRenderer {
 					stack2 = new ItemStack(Items.BUCKET, 1);
 				}
 				//System.out.println(stack);
-				IBakedModel ibakedmodel = this.itemRenderer.getModel(stack2, mc.level, null);
+				// TODO replaced null with 0 as last parameter. If error, check if right
+				BakedModel ibakedmodel = this.itemRenderer.getModel(stack2, Minecraft.getInstance().level, Minecraft.getInstance().player, 0);
 				itemRenderer.render(stack2, TransformType.NONE, false, matrixStack, buffer, combinedLight,
 						OverlayTexture.NO_OVERLAY, ibakedmodel);
 			}
 		}
 	}
-
-	private void firstCall() {
-
-		firstCall = false;
-		pipePumpTileEntity = new PipePumpTileEntity();
-		pipePumpTileEntity.facing = Direction.NORTH;
-		pipePumpTileEntity.anim = -1;
-		pipeTileEntity = new PipeTileEntity();
-		pipeTileEntity.boolConnections = new boolean[] { false, false, true, true, false, false };
-		pumpTileEntity = new PumpTileEntity();
-
-		this.itemRenderer = mc.getItemRenderer();
-	}
-
 }

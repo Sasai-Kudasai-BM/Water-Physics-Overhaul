@@ -1,8 +1,8 @@
 package net.skds.wpo.registry;
 
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.IntegerProperty;
-import net.minecraft.util.Direction;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.core.Direction;
 import net.skds.wpo.WPOConfig;
 
 public class BlockStateProps {

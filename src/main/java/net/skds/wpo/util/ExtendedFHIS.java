@@ -1,6 +1,6 @@
 package net.skds.wpo.util;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 import net.skds.wpo.item.AdvancedBucket;

@@ -18,24 +18,25 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '0.1.2'
+version = '0.2.0'
 group = 'net.skds.wpo'
 archivesBaseName = 'water_physics_overhaul'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
+//java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+java.toolchain.languageVersion = JavaLanguageVersion.of(16)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
-
-    mappings channel: 'official', version: '1.16.5'
-
+//    mappings channel: 'official', version: '1.16.5'
+    mappings channel: 'official', version: '1.17.1'
 }
 
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.0.14'
+//    minecraft 'net.minecraftforge:forge:1.16.5-36.0.14'
+    minecraft 'net.minecraftforge:forge:1.17.1-37.1.1'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    implementation fg.deobf(fileTree(dir: 'lib', include: ['*.jar']))
+    implementation fg.deobf(files('lib/skds_core-0.2.0.jar'))
 }
 
 jar {

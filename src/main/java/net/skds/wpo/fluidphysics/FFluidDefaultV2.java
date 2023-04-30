@@ -4,11 +4,11 @@ import static net.skds.wpo.WPOConfig.MAX_FLUID_LEVEL;
 
 import java.util.Random;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.skds.wpo.WPOConfig;
 
 public class FFluidDefaultV2 extends FFluidBasic {
@@ -17,7 +17,7 @@ public class FFluidDefaultV2 extends FFluidBasic {
 	boolean dc = false;
 	boolean sc = false;
 
-	FFluidDefaultV2(ServerWorld w, BlockPos pos, WorldWorkSet owner, FFluidBasic.Mode mode, int worker) {
+	FFluidDefaultV2(ServerLevel w, BlockPos pos, WorldWorkSet owner, FFluidBasic.Mode mode, int worker) {
 		super(w, pos, mode, owner, worker);
 	}
 

@@ -1,9 +1,9 @@
 package net.skds.wpo.util.interfaces;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
 
 public interface IFlowingFluid {
-    public void beforeReplacingBlockCustom(IWorld worldIn, BlockPos pos, BlockState state);
+    public void beforeReplacingBlockCustom(LevelAccessor worldIn, BlockPos pos, BlockState state);
 }

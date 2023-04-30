@@ -3,19 +3,19 @@ package net.skds.wpo.fluidphysics;
 import static net.skds.wpo.WPOConfig.COMMON;
 import static net.skds.wpo.WPOConfig.MAX_FLUID_LEVEL;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.IWaterLoggable;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.WaterFluid;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.WaterFluid;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.server.level.ServerLevel;
 import net.skds.wpo.WPOConfig;
 
 public class FFluidEQ extends FFluidBasic {
 
-	FFluidEQ(ServerWorld w, BlockPos pos, WorldWorkSet owner, FFluidBasic.Mode mode, int worker) {
+	FFluidEQ(ServerLevel w, BlockPos pos, WorldWorkSet owner, FFluidBasic.Mode mode, int worker) {
 		super(w, pos, mode, owner, worker);
 	}
 
@@ -100,7 +100,7 @@ public class FFluidEQ extends FFluidBasic {
 					FluidState fs2 = state2.getFluidState();
 					if (canReach(pos1, pos2, state1, state2)
 							&& (fs2.isEmpty() || (fs2.getAmount() < 2 && fs2.getType().isSame(fluid)))) {
-						if ((state1.getBlock() instanceof IWaterLoggable || state2.getBlock() instanceof IWaterLoggable)
+						if ((state1.getBlock() instanceof SimpleWaterloggedBlock || state2.getBlock() instanceof SimpleWaterloggedBlock)
 								&& !(fluid instanceof WaterFluid)) {
 							break wh;
 						}
@@ -204,7 +204,7 @@ public class FFluidEQ extends FFluidBasic {
 
 			if (canReach(pos1, pos2, state1, state2)
 					&& (isThisFluid(fs2.getType()) || (fs2.isEmpty() && level > 1))) {
-				if ((state1.getBlock() instanceof IWaterLoggable || state2.getBlock() instanceof IWaterLoggable)
+				if ((state1.getBlock() instanceof SimpleWaterloggedBlock || state2.getBlock() instanceof SimpleWaterloggedBlock)
 						&& !(fluid instanceof WaterFluid)) {
 					// System.out.println("dd");
 					break;
@@ -238,7 +238,7 @@ public class FFluidEQ extends FFluidBasic {
 				//int hmod2 = hmod >= 1 ? 1 : hmod <= -1 ? -1 : 0;
 				int l1 = getAbsoluteLevel(pos.getY(), level);
 				int l2 = getAbsoluteLevel(pos2.getY(), level2);
-				if (MathHelper.abs(l1 - l2) > 1
+				if (Mth.abs(l1 - l2) > 1
 						&& !FFluidStatic.canOnlyFullCube(state2)) {
 					state2 = flowToPosEq(pos, pos2, state2, hmod);
 					setState(pos2, state2);
@@ -282,7 +282,7 @@ public class FFluidEQ extends FFluidBasic {
 			state = getUpdatedState(state, level);
 			state2n = getUpdatedState(state2, level2);
 
-		} else if (MathHelper.abs(delta) >= 1) {
+		} else if (Mth.abs(delta) >= 1) {
 
 			level -= delta;
 			level2 += delta;
@@ -313,7 +313,7 @@ public class FFluidEQ extends FFluidBasic {
 			return false;
 		}
 
-		if ((state1.getBlock() instanceof IWaterLoggable || state2.getBlock() instanceof IWaterLoggable)
+		if ((state1.getBlock() instanceof SimpleWaterloggedBlock || state2.getBlock() instanceof SimpleWaterloggedBlock)
 				&& !(fluid instanceof WaterFluid)) {
 			return false;
 		}

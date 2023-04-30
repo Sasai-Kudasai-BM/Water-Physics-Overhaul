@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,11 +25,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ITag;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.tags.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.skds.wpo.WPO;
 import net.skds.wpo.util.pars.ParsApplier.ParsGroup;
@@ -37,7 +38,7 @@ public class JsonConfigReader {
 
 	File fileF;
 
-	File dir = new File(System.getProperty("user.dir") + "\\config\\" + WPO.MOD_ID);
+	File dir = Paths.get(System.getProperty("user.dir"), "config", WPO.MOD_ID).toFile();
 	Set<Map.Entry<String, JsonElement>> blockListSet = new HashSet<>();
 	Set<Map.Entry<String, JsonElement>> propertyListSet = new HashSet<>();
 	Map<String, JsonElement> propertyListMap = new HashMap<>();
@@ -83,7 +84,7 @@ public class JsonConfigReader {
 			}
 		}
 		BufferedInputStream is = new BufferedInputStream(
-				WPO.class.getClassLoader().getResourceAsStream(WPO.MOD_ID + "\\special\\fluids.json"));
+				WPO.class.getClassLoader().getResourceAsStream(Paths.get(WPO.MOD_ID, "special", "fluids.json").toString()));
 		boolean ex = fileF.exists();
 		if (ex) {
 			fileF.delete();
@@ -177,7 +178,7 @@ public class JsonConfigReader {
 		for (String id : list) {
 			if (id.charAt(0) == '#') {
 				id = id.substring(1);
-				ITag<Block> tag = BlockTags.getAllTags().getTag(new ResourceLocation(id));
+				Tag<Block> tag = BlockTags.getAllTags().getTag(new ResourceLocation(id));
 				if (tag == null) {
 					LOGGER.error("Block tag \"" + id + "\" does not exist!");
 					continue;
@@ -201,7 +202,7 @@ public class JsonConfigReader {
 			String id = je.getAsString();
 			if (id.charAt(0) == '#') {
 				id = id.substring(1);
-				ITag<Block> tag = BlockTags.getAllTags().getTag(new ResourceLocation(id));
+				Tag<Block> tag = BlockTags.getAllTags().getTag(new ResourceLocation(id));
 				if (tag == null) {
 					LOGGER.error("Block tag \"" + id + "\" does not exist!");
 					continue;

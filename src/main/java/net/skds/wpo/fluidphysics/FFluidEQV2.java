@@ -3,18 +3,18 @@ package net.skds.wpo.fluidphysics;
 import static net.skds.wpo.WPOConfig.COMMON;
 import static net.skds.wpo.WPOConfig.MAX_FLUID_LEVEL;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.IWaterLoggable;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.WaterFluid;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.WaterFluid;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.skds.wpo.WPOConfig;
 
 public class FFluidEQV2 extends FFluidBasic {
 
-	FFluidEQV2(ServerWorld w, BlockPos pos, WorldWorkSet owner, FFluidBasic.Mode mode, int worker) {
+	FFluidEQV2(ServerLevel w, BlockPos pos, WorldWorkSet owner, FFluidBasic.Mode mode, int worker) {
 		super(w, pos, mode, owner, worker);
 	}
 
@@ -98,7 +98,7 @@ public class FFluidEQV2 extends FFluidBasic {
 					FluidState fs2 = state2.getFluidState();
 					if (canReach(pos1, pos2, state1, state2)
 							&& (fs2.isEmpty() || (fs2.getAmount() < 2 && fs2.getType().isSame(fluid)))) {
-						if ((state1.getBlock() instanceof IWaterLoggable || state2.getBlock() instanceof IWaterLoggable)
+						if ((state1.getBlock() instanceof SimpleWaterloggedBlock || state2.getBlock() instanceof SimpleWaterloggedBlock)
 								&& !(fluid instanceof WaterFluid)) {
 							break wh;
 						}
@@ -193,7 +193,7 @@ public class FFluidEQV2 extends FFluidBasic {
 			}
 
 			if (canReach(pos1, pos2, state1, state2) && (isThisFluid(fs2.getType()) || (fs2.isEmpty() && level > 1))) {
-				if ((state1.getBlock() instanceof IWaterLoggable || state2.getBlock() instanceof IWaterLoggable)
+				if ((state1.getBlock() instanceof SimpleWaterloggedBlock || state2.getBlock() instanceof SimpleWaterloggedBlock)
 						&& !(fluid instanceof WaterFluid)) {
 					// System.out.println("dd");
 					break;
@@ -246,7 +246,7 @@ public class FFluidEQV2 extends FFluidBasic {
 			return false;
 		}
 
-		if ((state1.getBlock() instanceof IWaterLoggable || state2.getBlock() instanceof IWaterLoggable)
+		if ((state1.getBlock() instanceof SimpleWaterloggedBlock || state2.getBlock() instanceof SimpleWaterloggedBlock)
 				&& !(fluid instanceof WaterFluid)) {
 			return false;
 		}

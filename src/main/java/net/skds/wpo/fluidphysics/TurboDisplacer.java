@@ -1,13 +1,13 @@
 package net.skds.wpo.fluidphysics;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.IWaterLoggable;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.skds.wpo.WPOConfig;
 import net.skds.wpo.fluidphysics.FFluidStatic.FluidDisplacer2;
 import net.skds.wpo.util.interfaces.IBaseWL;
@@ -15,7 +15,7 @@ import net.skds.wpo.util.interfaces.IBaseWL;
 public class TurboDisplacer {
 
 
-	public static void markForDisplace(ServerWorld w, BlockPos pos, BlockState oldState, BlockState newState) {
+	public static void markForDisplace(ServerLevel w, BlockPos pos, BlockState oldState, BlockState newState) {
 		//World w = (World) w;
 		//BlockPos pos = e.getPos();
 		//BlockState oldState = w.getBlockState(pos);
@@ -29,7 +29,7 @@ public class TurboDisplacer {
 		if (fs.isEmpty()) {
 			return;
 		}
-		if (nb instanceof IWaterLoggable && f.isSame(Fluids.WATER)) {
+		if (nb instanceof SimpleWaterloggedBlock && f.isSame(Fluids.WATER)) {
 			if (level == WPOConfig.MAX_FLUID_LEVEL) {
 				w.setBlock(pos, FFluidStatic.getUpdatedState(newState, level, f), 3);
 				return;

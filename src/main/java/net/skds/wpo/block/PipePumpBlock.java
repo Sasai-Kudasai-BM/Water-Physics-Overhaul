@@ -1,30 +1,50 @@
 package net.skds.wpo.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.DirectionalBlock;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.skds.wpo.tileentity.PipePumpTileEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.skds.wpo.block.entity.PipePumpBlockEntity;
+import net.skds.wpo.registry.Entities;
 
-public class PipePumpBlock extends DirectionalBlock {
+import javax.annotation.Nullable;
+
+public class PipePumpBlock extends BaseEntityBlock {
 
 	public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
 	public PipePumpBlock(Properties properties) {
 		super(properties);
 		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, Boolean.valueOf(false)));
+	}
+
+	@Nullable
+	@Override
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+		return new PipePumpBlockEntity(pos, state);
+	}
+
+	@Override
+	@Nullable
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+//		return level.isClientSide() ? null : createTickerHelper(type, Entities.PIPE_PUMP.get(), PipePumpBlockEntity::tick);
+		return createTickerHelper(type, Entities.PIPE_PUMP.get(), PipePumpBlockEntity::tick);
 	}
 
 	public static PipePumpBlock getForReg() {
@@ -32,9 +52,9 @@ public class PipePumpBlock extends DirectionalBlock {
 		return new PipePumpBlock(prop);
 	}
 
-	private static final IPositionPredicate opa = new IPositionPredicate() {
+	private static final StatePredicate opa = new StatePredicate() {
 		@Override
-		public boolean test(BlockState s, IBlockReader w, BlockPos p) {
+		public boolean test(BlockState s, BlockGetter w, BlockPos p) {
 			return false;
 		}
 	};
@@ -46,7 +66,7 @@ public class PipePumpBlock extends DirectionalBlock {
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos,
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos,
 			boolean isMoving) {
 		boolean flag = worldIn.hasNeighborSignal(pos);
 		boolean flag1 = state.getValue(POWERED);
@@ -66,18 +86,8 @@ public class PipePumpBlock extends DirectionalBlock {
 	// }
 
 	@Override
-	public boolean hasTileEntity(BlockState state) {
-		return true;
-	}
-
-	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-		return new PipePumpTileEntity(state);
-	}
-
-	@Override
-	public VoxelShape getBlockSupportShape(BlockState state, IBlockReader reader, BlockPos pos) {
-		return VoxelShapes.block();
+	public VoxelShape getBlockSupportShape(BlockState state, BlockGetter reader, BlockPos pos) {
+		return Shapes.block();
 		// switch (state.get(FACING)) {
 		// case UP:
 		// return U_AABB;
@@ -97,18 +107,18 @@ public class PipePumpBlock extends DirectionalBlock {
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
 		return getBlockSupportShape(state, worldIn, pos);
 	}
 
 	@Override
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos,
-			ISelectionContext context) {
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos,
+			CollisionContext context) {
 		return getBlockSupportShape(state, worldIn, pos);
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockItemUseContext context) {
+	public BlockState getStateForPlacement(BlockPlaceContext context) {
 		boolean sneak = context.getPlayer().isShiftKeyDown();
 		Direction dir = context.getNearestLookingDirection();
 		return this.defaultBlockState().setValue(FACING, sneak ? dir.getOpposite() : dir);

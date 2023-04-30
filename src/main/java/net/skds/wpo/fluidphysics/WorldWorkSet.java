@@ -6,11 +6,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import io.netty.util.internal.ConcurrentSet;
-import net.minecraft.fluid.FlowingFluid;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerTickList;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ServerTickList;
+import net.minecraft.server.level.ServerLevel;
 import net.skds.core.Events;
 import net.skds.core.api.IWWS;
 import net.skds.core.api.IWWSG;
@@ -20,7 +20,7 @@ import net.skds.wpo.util.TaskBlocker;
 
 public class WorldWorkSet implements IWWS {
 	public final IWWSG glob;
-	public final ServerWorld world;
+	public final ServerLevel world;
 
 	public ConcurrentSet<Long> excludedTasks = new ConcurrentSet<>();
 
@@ -43,8 +43,8 @@ public class WorldWorkSet implements IWWS {
 	private static ConcurrentSkipListSet<FluidTask> TASKS = new ConcurrentSkipListSet<>(comp);
 	private static ConcurrentLinkedQueue<FluidTask> DELAYED_TASKS = new ConcurrentLinkedQueue<>();
 
-	public WorldWorkSet(ServerWorld w, IWWSG owner) {
-		world = (ServerWorld) w;
+	public WorldWorkSet(ServerLevel w, IWWSG owner) {
+		world = (ServerLevel) w;
 		glob = owner;
 	}
 

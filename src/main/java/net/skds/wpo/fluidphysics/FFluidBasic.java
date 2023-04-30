@@ -1,19 +1,19 @@
 package net.skds.wpo.fluidphysics;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.IWaterLoggable;
-import net.minecraft.fluid.FlowingFluid;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.server.ChunkHolder;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.server.level.ChunkHolder;
+import net.minecraft.server.level.ServerLevel;
 import net.skds.core.api.IWWSG;
 import net.skds.core.util.blockupdate.BasicExecutor;
 import net.skds.core.util.blockupdate.UpdateTask;
@@ -26,7 +26,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 	protected final Mode mode;
 	protected final int MFL = WPOConfig.MAX_FLUID_LEVEL;
 	protected final Fluid fluid;
-	protected final ServerWorld w;
+	protected final ServerLevel w;
 	protected final BlockPos pos;
 	protected final long longpos;
 
@@ -36,7 +36,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 	protected FluidState fs;
 	protected BlockState state;
 
-	protected FFluidBasic(ServerWorld w, BlockPos pos, Mode mode, WorldWorkSet owner, int worker) {
+	protected FFluidBasic(ServerLevel w, BlockPos pos, Mode mode, WorldWorkSet owner, int worker) {
 		super(w, FFluidBasic::updater, owner);
 		this.castOwner = owner;
 		this.worker = worker;
@@ -50,20 +50,20 @@ public abstract class FFluidBasic extends BasicExecutor {
 		this.level = fs.getAmount();
 	}
 
-	public static void updater(UpdateTask task, ServerWorld world) {
+	public static void updater(UpdateTask task, ServerLevel world) {
 	}
 
 	@SuppressWarnings("deprecation")
 	@Override
-	protected void applyAction(BlockPos pos, BlockState newState, BlockState oldState, ServerWorld world) {
+	protected void applyAction(BlockPos pos, BlockState newState, BlockState oldState, ServerLevel world) {
 		if (newState == oldState) {
 			return;
 		}
-		IChunk ichunk = getChunk(pos);
-		if (!(ichunk instanceof Chunk)) {
+		ChunkAccess ichunk = getChunk(pos);
+		if (!(ichunk instanceof LevelChunk)) {
 			return;
 		}
-		Chunk chunk = (Chunk) ichunk;
+		LevelChunk chunk = (LevelChunk) ichunk;
 		Block block = newState.getBlock();
 
 		BlockPos posu = pos.above();
@@ -82,13 +82,13 @@ public abstract class FFluidBasic extends BasicExecutor {
 		}
 		synchronized (world) {
 			if (fluid != Fluids.EMPTY && !oldState.isAir() && !fluid.isSame(oldState.getFluidState().getType())
-					&& !(oldState.getBlock() instanceof IWaterLoggable)) {
+					&& !(oldState.getBlock() instanceof SimpleWaterloggedBlock)) {
 				((IFlowingFluid) fluid).beforeReplacingBlockCustom(world, pos, oldState);
 			}
 			// world.markBlockRangeForRenderUpdate(pos, oldState, newState);
 
 			if (chunk.getFullStatus() != null
-					&& chunk.getFullStatus().isOrAfter(ChunkHolder.LocationType.TICKING)) {
+					&& chunk.getFullStatus().isOrAfter(ChunkHolder.FullChunkStatus.TICKING)) {
 				world.sendBlockUpdated(pos, oldState, newState, 3);
 			}
 
@@ -113,7 +113,7 @@ public abstract class FFluidBasic extends BasicExecutor {
 
 		if ((newState.getFluidState().isEmpty() ^ oldState.getFluidState().isEmpty())
 				&& (newState.getLightBlock(world, pos) != oldState.getLightBlock(world, pos)
-						|| newState.getLightValue(world, pos) != oldState.getLightValue(world, pos)
+						|| newState.getLightEmission(world, pos) != oldState.getLightEmission(world, pos)
 						|| newState.useShapeForLightOcclusion() || oldState.useShapeForLightOcclusion())) {
 			world.getChunkSource().getLightEngine().checkBlock(pos);
 		}

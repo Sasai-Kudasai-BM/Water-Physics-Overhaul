@@ -1,22 +1,23 @@
-package net.skds.wpo.tileentity;
+package net.skds.wpo.block.entity;
 
 import java.util.Optional;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.FloatNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.IBooleanFunction;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.FloatTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.core.Vec3i;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidAttributes;
@@ -30,17 +31,17 @@ import net.skds.wpo.registry.Entities;
 import net.skds.wpo.util.api.IConnectionSides;
 import net.skds.wpo.util.api.IPressuredTank;
 
-public class PipeTileEntity extends BasicTankEntity {
+public class PipeBlockEntity extends BasicTankBlockEntity {
 
 	private static final float G = 9.81f;
 	private static final float ATM_PRESSURE = 1f;
 	private static final double PIX = 1D / 16D;
-	public static final AxisAlignedBB MID_AABB = new AxisAlignedBB(3 * PIX, 3 * PIX, 3 * PIX, 13 * PIX, 13 * PIX,
+	public static final AABB MID_AABB = new AABB(3 * PIX, 3 * PIX, 3 * PIX, 13 * PIX, 13 * PIX,
 			13 * PIX);
-	public static final VoxelShape MID_SHAPE = VoxelShapes.create(MID_AABB);
+	public static final VoxelShape MID_SHAPE = Shapes.create(MID_AABB);
 
 	public float[] flow = new float[6];
-	public TileEntity[] connections = new TileEntity[6];
+	public BlockEntity[] connections = new BlockEntity[6];
 	public boolean[] boolConnections = new boolean[6];
 	public float pressure = ATM_PRESSURE;
 
@@ -50,8 +51,8 @@ public class PipeTileEntity extends BasicTankEntity {
 	//private FluidTank tank = new FluidTank(500);
 	private final LazyOptional<IFluidHandler> holder = LazyOptional.of(() -> tank);
 
-	public PipeTileEntity() {
-		super(Entities.PIPE.get());
+	public PipeBlockEntity(BlockPos pos, BlockState state) {
+		super(Entities.PIPE.get(), pos, state);
 	}
 
 	@Override
@@ -61,27 +62,16 @@ public class PipeTileEntity extends BasicTankEntity {
 		// updateConntections();
 	}
 
-	@Override
-	public void tick() {
-		if (pressure < 0F) {
-			pressure = 0F;
+	public static void tick(Level level, BlockPos pos, BlockState state, PipeBlockEntity be) {
+		if (be.pressure < 0F) {
+			be.pressure = 0F;
 		}
 		// System.out.println(pressure);
-
-		if (firstTick) {
-			updateConntections();
-			firstTick = false;
-		}
-
-
-		if (!level.isClientSide) {
-			tickFluid();
-			//sendUpdatePacket();
-		}
-
+		be.tickFluid();
+		//sendUpdatePacket();
 	}
 
-	private void tickConnection(TileEntity connected, Direction direction) {
+	private void tickConnection(BlockEntity connected, Direction direction) {
 		IFluidHandler fh2 = getFluidHandler(connected, direction);
 		if (fh2 != null) {
 
@@ -217,6 +207,10 @@ public class PipeTileEntity extends BasicTankEntity {
 	}
 
 	private void tickFluid() {
+		if (firstTick) {
+			updateConntections();
+			firstTick = false;
+		}
 		for (Direction dir : FFluidStatic.getAllRandomizedDirections(level.random)) {
 		//for (Direction dir : Direction.values()) {
 			int i = dir.get3DDataValue();
@@ -231,13 +225,13 @@ public class PipeTileEntity extends BasicTankEntity {
 		}
 	}
 
-	private static void setPressure(TileEntity te, float pressure, Direction side) {
+	private static void setPressure(BlockEntity te, float pressure, Direction side) {
 		if (te instanceof IPressuredTank) {
 			((IPressuredTank) te).setPressure(pressure, side);
 		}
 	}
 
-	private static IFluidHandler getFluidHandler(TileEntity tile, Direction dir) {
+	private static IFluidHandler getFluidHandler(BlockEntity tile, Direction dir) {
 		if (tile != null) {
 			Optional<IFluidHandler> op = tile
 					.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, dir.getOpposite()).resolve();
@@ -248,7 +242,7 @@ public class PipeTileEntity extends BasicTankEntity {
 		return null;
 	}
 
-	private static float getZeroPressureInHandler(TileEntity tile, Direction side) {
+	private static float getZeroPressureInHandler(BlockEntity tile, Direction side) {
 		if (tile != null) {
 			if (tile instanceof IPressuredTank) {
 				return ((IPressuredTank) tile).getZeroPressure(side);
@@ -257,7 +251,7 @@ public class PipeTileEntity extends BasicTankEntity {
 		return ATM_PRESSURE;
 	}
 
-	private static float getPressureInHandler(TileEntity tile, Direction side) {
+	private static float getPressureInHandler(BlockEntity tile, Direction side) {
 		if (tile != null) {
 			if (tile instanceof IPressuredTank) {
 				return ((IPressuredTank) tile).getPressure(side);
@@ -269,7 +263,7 @@ public class PipeTileEntity extends BasicTankEntity {
 	public void updateBoolConnections() {
 		boolean[] bl = new boolean[6];
 		int i = 0;
-		for (TileEntity fth : connections) {
+		for (BlockEntity fth : connections) {
 			bl[i] = fth != null;
 			i++;
 		}
@@ -280,16 +274,16 @@ public class PipeTileEntity extends BasicTankEntity {
 		for (Direction dir : Direction.values()) {
 			BlockPos pos2 = worldPosition.relative(dir);
 			BlockState state2 = level.getBlockState(pos2);
-			if (state2.hasTileEntity()) {
-				TileEntity te = level.getBlockEntity(pos2);
+			if (state2.hasBlockEntity()) {
+				BlockEntity te = level.getBlockEntity(pos2);
 				if (te.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY).resolve().isPresent()) {
 					if (te instanceof IConnectionSides && !((IConnectionSides) te).canBeConnected(dir)) {
 						removeConnection(dir);
 						return;
 					}
 					addConnection(te, dir);
-					if (te instanceof PipeTileEntity) {
-						((PipeTileEntity) te).addConnection(this, dir.getOpposite());
+					if (te instanceof PipeBlockEntity) {
+						((PipeBlockEntity) te).addConnection(this, dir.getOpposite());
 					}
 				} else {
 					removeConnection(dir);
@@ -300,7 +294,7 @@ public class PipeTileEntity extends BasicTankEntity {
 		}
 	}
 
-	public void addConnection(TileEntity handler, Direction direction) {
+	public void addConnection(BlockEntity handler, Direction direction) {
 		connections[direction.get3DDataValue()] = handler;
 		updateBoolConnections();
 	}
@@ -314,10 +308,10 @@ public class PipeTileEntity extends BasicTankEntity {
 		VoxelShape shape = MID_SHAPE;
 		for (int i = 0; i < 6; i++) {
 			if (connections[i] != null) {
-				Vector3i dirvec = Direction.from3DDataValue(i).getNormal();
-				Vector3d vec = new Vector3d(dirvec.getX(), dirvec.getY(), dirvec.getZ()).scale(3 * PIX);
-				VoxelShape shape2 = VoxelShapes.create(MID_AABB.move(vec));
-				shape = VoxelShapes.joinUnoptimized(shape, shape2, IBooleanFunction.OR);
+				Vec3i dirvec = Direction.from3DDataValue(i).getNormal();
+				Vec3 vec = new Vec3(dirvec.getX(), dirvec.getY(), dirvec.getZ()).scale(3 * PIX);
+				VoxelShape shape2 = Shapes.create(MID_AABB.move(vec));
+				shape = Shapes.joinUnoptimized(shape, shape2, BooleanOp.OR);
 			}
 		}
 		return shape.optimize();
@@ -327,11 +321,11 @@ public class PipeTileEntity extends BasicTankEntity {
 		if (stack.isEmpty()) {
 			return 0.0f;
 		}
-		return (stack.getAmount() * stack.getFluid().getFluid().getAttributes().getDensity() * 1E-8F * G);
+		return (stack.getAmount() * stack.getFluid().getAttributes().getDensity() * 1E-8F * G);
 	}
 
 	public static float getPressurePerH(Fluid fluid, int mb) {
-		return (mb * fluid.getFluid().getAttributes().getDensity() * 1E-8F * G);
+		return (mb * fluid.getAttributes().getDensity() * 1E-8F * G);
 	}
 
 	@Override
@@ -350,8 +344,8 @@ public class PipeTileEntity extends BasicTankEntity {
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT tag) {
-		super.load(state, tag);
+	public void load(CompoundTag tag) {
+		super.load(tag);
 		tank.readFromNBT(tag);
 		if (tag.contains("Pressure")) {
 			pressure = tag.getFloat("Pressure");
@@ -359,20 +353,20 @@ public class PipeTileEntity extends BasicTankEntity {
 			pressure = ATM_PRESSURE;
 		}
 
-		ListNBT flowListNBT = tag.getList("Flow", 5);
+		ListTag flowListNBT = tag.getList("Flow", 5);
 		for (int i = 0; i < 6; i++) {
 			flow[i] = flowListNBT.getFloat(i);
 		}
 	}
 
 	@Override
-	public CompoundNBT save(CompoundNBT tag) {
+	public CompoundTag save(CompoundTag tag) {
 		tag = super.save(tag);
 		tank.writeToNBT(tag);
 		tag.putFloat("Pressure", pressure);
-		ListNBT flowListNBT = new ListNBT();
+		ListTag flowListNBT = new ListTag();
 		for (float f : flow) {
-			flowListNBT.add(FloatNBT.valueOf(f));
+			flowListNBT.add(FloatTag.valueOf(f));
 		}
 		tag.put("Flow", flowListNBT);
 		return tag;
@@ -422,8 +416,8 @@ public class PipeTileEntity extends BasicTankEntity {
 
 	@SuppressWarnings("unused")
 	private void sendUpdatePacket() {
-		for (PlayerEntity p : level.players()) {
-			PacketHandler.send(p, new PipeUpdatePacket(save(new CompoundNBT())));
+		for (Player p : level.players()) {
+			PacketHandler.send(p, new PipeUpdatePacket(save(new CompoundTag())));
 		}
 	}
 }

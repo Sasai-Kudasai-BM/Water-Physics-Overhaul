@@ -1,15 +1,16 @@
-package net.skds.wpo.tileentity;
+package net.skds.wpo.block.entity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.fluid.FlowingFluid;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
@@ -20,7 +21,7 @@ import net.skds.wpo.registry.Entities;
 import net.skds.wpo.registry.FBlocks;
 import net.skds.wpo.util.api.IConnectionSides;
 
-public class PumpTileEntity extends BasicTankEntity implements IConnectionSides {
+public class PumpBlockEntity extends BasicTankBlockEntity implements IConnectionSides {
 
 	public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
@@ -38,53 +39,48 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 
 	public int timer = 0;
 
-	public PumpTileEntity() {
-		super(Entities.PUMP.get());
-	}
-
-	public PumpTileEntity(BlockState state) {
-		super(Entities.PUMP.get());
+	public PumpBlockEntity(BlockPos pos, BlockState state) {
+		super(Entities.PUMP.get(), pos, state);
 		facing = state.getValue(BlockStateProperties.FACING);
 	}
 
-	@Override
-	public void tick() {
-		timer++;
+	public static void tick(Level level, BlockPos pos, BlockState state, PumpBlockEntity be) {
+		be.timer++;
 
-		if (pressure < 0) {
-			pressure = 0;
+		if (be.pressure < 0) {
+			be.pressure = 0;
 		}
 
-		clearCache();
-		BlockState bs = getBlockState();
-		powered = bs.getBlock() == FBlocks.PUMP.get() && bs.getValue(POWERED);
-		if (powered) {
-			if (pressure < MAX_PRESSURE) {
-				pressure += (MAX_PRESSURE - pressure) * WJUH;
+//		be.clearCache();  // TODO check if needed
+		BlockState bs = be.getBlockState();
+		be.powered = bs.getBlock() == FBlocks.PUMP.get() && bs.getValue(POWERED);
+		if (be.powered) {
+			if (be.pressure < MAX_PRESSURE) {
+				be.pressure += (MAX_PRESSURE - be.pressure) * WJUH;
 			}
 
 			if (level.isClientSide) {
-				if (anim < 0) {
-					anim = 0;
+				if (be.anim < 0) {
+					be.anim = 0;
 				}
-				anim++;
-				if (anim > animSpeed) {
-					anim = 0;
+				be.anim++;
+				if (be.anim > be.animSpeed) {
+					be.anim = 0;
 				}
 				return;
 			}
 
-			if (timer % 4 == 0) {
-				tickPump(bs);
+			if (be.timer % 4 == 0) {
+				be.tickPump(bs);
 			}
 		} else {
 
 			if (level.isClientSide) {
-				if (anim > animSpeed / 2) {
-					anim = animSpeed - anim;
+				if (be.anim > be.animSpeed / 2) {
+					be.anim = be.animSpeed - be.anim;
 				}
-				if (anim > -1) {
-					anim--;
+				if (be.anim > -1) {
+					be.anim--;
 				}
 			}
 		}
@@ -191,7 +187,7 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 
 	@Override
 	public float getPressure(Direction side) {
-		return pressure + (PipeTileEntity.getPressurePerStack(tank.getFluid()) * 2);
+		return pressure + (PipeBlockEntity.getPressurePerStack(tank.getFluid()) * 2);
 	}
 
 	@Override
@@ -200,8 +196,8 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT tag) {
-		super.load(state, tag);
+	public void load(CompoundTag tag) {
+		super.load(tag);
 		tank.readFromNBT(tag);
 		if (tag.contains("Pressure")) {
 			pressure = tag.getFloat("Pressure");
@@ -211,7 +207,7 @@ public class PumpTileEntity extends BasicTankEntity implements IConnectionSides 
 	}
 
 	@Override
-	public CompoundNBT save(CompoundNBT tag) {
+	public CompoundTag save(CompoundTag tag) {
 		tag = super.save(tag);
 		tank.writeToNBT(tag);
 		tag.putFloat("Pressure", pressure);

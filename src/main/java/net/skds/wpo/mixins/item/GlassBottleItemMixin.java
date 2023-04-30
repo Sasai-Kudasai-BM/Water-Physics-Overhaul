@@ -6,27 +6,27 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.GlassBottleItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.RayTraceContext.FluidMode;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BottleItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.ClipContext.Fluid;
+import net.minecraft.world.level.Level;
 import net.skds.wpo.fluidphysics.FFluidStatic;
 
-@Mixin(value = { GlassBottleItem.class })
+@Mixin(value = { BottleItem.class })
 public class GlassBottleItemMixin {
 
 	// , args = "Lnet/minecraft/util/math/RayTraceContext$FluidMode;"
-	@ModifyArg(method = "Lnet/minecraft/item/GlassBottleItem;use(Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/ActionResult;", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/GlassBottleItem;getPlayerPOVHitResult(Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/math/RayTraceContext$FluidMode;)Lnet/minecraft/util/math/BlockRayTraceResult;", args = "Lnet/minecraft/util/math/RayTraceContext$FluidMode;"))
-	public FluidMode aaa(FluidMode fm) {
-		return FluidMode.ANY;
+	@ModifyArg(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/BottleItem;getPlayerPOVHitResult(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/ClipContext$Fluid;)Lnet/minecraft/world/phys/BlockHitResult;", args = "Lnet/minecraft/world/level/ClipContext$Fluid;"))
+	public Fluid aaa(Fluid fm) {
+		return Fluid.ANY;
 
 	}
 
-	@Inject(method = "Lnet/minecraft/item/GlassBottleItem;use(Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/ActionResult;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/util/SoundEvent;Lnet/minecraft/util/SoundCategory;FF)V"), cancellable = true)
-	public void bbb(World w, PlayerEntity p, Hand hand, CallbackInfoReturnable<ActionResult<ItemStack>> ci) {
+	@Inject(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;playSound(Lnet/minecraft/world/entity/player/Player;DDDLnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;FF)V"), cancellable = true)
+	public void bbb(Level w, Player p, InteractionHand hand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> ci) {
 		FFluidStatic.onBottleUse(w, p, hand, ci, p.getItemInHand(hand));
 	}
 

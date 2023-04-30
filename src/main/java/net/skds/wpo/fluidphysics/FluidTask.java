@@ -1,7 +1,7 @@
 package net.skds.wpo.fluidphysics;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.skds.core.api.multithreading.ITaskRunnable;
 import net.skds.wpo.util.TaskBlocker;
 
@@ -27,8 +27,8 @@ public abstract class FluidTask implements ITaskRunnable {
 	}
 
 	@Override
-	public boolean revoke(World wr) {
-		World w = owner.world;
+	public boolean revoke(Level wr) {
+		Level w = owner.world;
 		if (w != wr) {
 			return false;
 		}

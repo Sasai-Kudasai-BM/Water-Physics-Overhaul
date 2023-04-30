@@ -1,6 +1,6 @@
 package net.skds.wpo.util;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import net.skds.wpo.fluidphysics.FluidTask;
 
 public class TaskBlocker {

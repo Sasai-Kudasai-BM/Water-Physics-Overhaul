@@ -1,14 +1,17 @@
-package net.skds.wpo.tileentity;
+package net.skds.wpo.block.entity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BeaconBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
@@ -19,7 +22,9 @@ import net.skds.wpo.registry.Entities;
 import net.skds.wpo.registry.FBlocks;
 import net.skds.wpo.util.api.IConnectionSides;
 
-public class FluidGateTileEntity extends BasicTankEntity
+import javax.annotation.Nullable;
+
+public class FluidGateBlockEntity extends BasicTankBlockEntity
 		implements IConnectionSides {
 
 	public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
@@ -31,8 +36,8 @@ public class FluidGateTileEntity extends BasicTankEntity
 	private boolean atm = true;
 	private int timer = 0;
 
-	public FluidGateTileEntity() {
-		super(Entities.GATE.get());
+	public FluidGateBlockEntity(BlockPos pos, BlockState state) {
+		super(Entities.GATE.get(), pos, state);
 	}
 
 	private Direction[] getDirections() {
@@ -51,27 +56,26 @@ public class FluidGateTileEntity extends BasicTankEntity
 		return dirs;
 	}
 
-	@Override
-	public void tick() {
-		timer++;
+	public static void tick(Level level, BlockPos pos, BlockState state, FluidGateBlockEntity be) {
+		be.timer++;
 		if (level.isClientSide) {
 			return;
 		}
 
-		if (pressure < 0) {
-			pressure = 0;
+		if (be.pressure < 0) {
+			be.pressure = 0;
 		}
 
-		if (atm) {
-			pressure = ATM_PRESSURE;
+		if (be.atm) {
+			be.pressure = ATM_PRESSURE;
 		}
 
-		clearCache();
-		BlockState bs = getBlockState();
+//		be.clearCache();  // TODO what is this for? where should it call to?
+		BlockState bs = be.getBlockState();
 		if (bs.getBlock() == FBlocks.GATE.get() && !bs.getValue(POWERED)) {
 
-			if (timer % 4 == 0) {
-				tickGate(bs);
+			if (be.timer % 4 == 0) {
+				be.tickGate(bs);
 			}
 		}
 	}
@@ -182,7 +186,7 @@ public class FluidGateTileEntity extends BasicTankEntity
 
 	@Override
 	public float getPressure(Direction side) {
-		return pressure + (PipeTileEntity.getPressurePerStack(tank.getFluid()) * 2);
+		return pressure + (PipeBlockEntity.getPressurePerStack(tank.getFluid()) * 2);
 	}
 
 	@Override
@@ -191,8 +195,8 @@ public class FluidGateTileEntity extends BasicTankEntity
 	}
 
 	@Override
-	public void load(BlockState state, CompoundNBT tag) {
-		super.load(state, tag);
+	public void load(CompoundTag tag) {
+		super.load(tag);
 		tank.readFromNBT(tag);
 		if (tag.contains("Pressure")) {
 			pressure = tag.getFloat("Pressure");
@@ -202,11 +206,10 @@ public class FluidGateTileEntity extends BasicTankEntity
 	}
 
 	@Override
-	public CompoundNBT save(CompoundNBT tag) {
+	public CompoundTag save(CompoundTag tag) {
 		tag = super.save(tag);
 		tank.writeToNBT(tag);
 		tag.putFloat("Pressure", pressure);
 		return tag;
 	}
-
 }

@@ -4,12 +4,12 @@ import static net.skds.wpo.WPOConfig.MAX_FLUID_LEVEL;
 
 import java.util.Iterator;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.fluid.FlowingFluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.skds.core.api.IWWSG;
 import net.skds.wpo.WPOConfig;
 
@@ -27,7 +27,7 @@ public class FFluidDefault extends FFluidBasic {
 	int c = 0;
 	int sum;
 
-	FFluidDefault(ServerWorld w, BlockPos pos, WorldWorkSet owner, FFluidBasic.Mode mode, int worker) {
+	FFluidDefault(ServerLevel w, BlockPos pos, WorldWorkSet owner, FFluidBasic.Mode mode, int worker) {
 		super(w, pos, mode, owner, worker);
 
 		this.sum = this.level;
@@ -39,7 +39,7 @@ public class FFluidDefault extends FFluidBasic {
 	@Override
 	protected void execute() {
 
-		if (!w.getChunkSource().isTickingChunk(pos)) {
+		if (!w.getChunkSource().isPositionTicking(pos.asLong())) {  // ... not sure if fix is correct
 			synchronized (w) {
 				w.getLiquidTicks().scheduleTick(pos, fluid, FFluidStatic.getTickRate((FlowingFluid) fluid, w));
 			}

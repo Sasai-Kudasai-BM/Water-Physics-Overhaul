@@ -4,7 +4,7 @@
   "package": "net.skds.wpo.mixins",
   "target": "@env(DEFAULT)",  
   "refmap": "mixins.wpo.refmap.json",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
   "mixins": [
 
     "other.BoatEntityMixin",

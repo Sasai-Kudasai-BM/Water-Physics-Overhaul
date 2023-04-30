@@ -1,31 +1,32 @@
-package net.skds.wpo.tileentity;
+package net.skds.wpo.block.entity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.skds.wpo.fluidphysics.FFluidStatic;
 import net.skds.wpo.util.api.IPressuredTank;
 
-public abstract class BasicTankEntity extends TileEntity implements ITickableTileEntity, IPressuredTank, IFluidHandler {
+public abstract class BasicTankBlockEntity extends BlockEntity implements IPressuredTank, IFluidHandler {
 
 	public int capacity = 500;
 	protected static final float ATM_PRESSURE = 1f;
 
 	protected FluidTank tank;
 	
-	public BasicTankEntity(TileEntityType<?> tileEntityTypeIn) {
-		super(tileEntityTypeIn);
+	public BasicTankBlockEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state) {
+		super(tileEntityTypeIn, pos, state);
 		tank = new FluidTank(capacity);
 	}
 
-	public BasicTankEntity(TileEntityType<?> tileEntityTypeIn, int capacity) {
-		super(tileEntityTypeIn);
+	public BasicTankBlockEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state, int capacity) {
+		super(tileEntityTypeIn, pos, state);
 		this.capacity = capacity;
 		tank = new FluidTank(capacity);
 	}
@@ -51,5 +52,7 @@ public abstract class BasicTankEntity extends TileEntity implements ITickableTil
 		//System.out.println(state0);
 		BlockState ns = FFluidStatic.getUpdatedState(state0, lvl, tf);
 		level.setBlockAndUpdate(worldPosition, ns);
-	}	
+	}
+
+
 }

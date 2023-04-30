@@ -1,7 +1,7 @@
 package net.skds.wpo;
 
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.TagsUpdatedEvent;
 import net.minecraftforge.event.entity.player.FillBucketEvent;
 import net.minecraftforge.event.world.BlockEvent;
@@ -41,15 +41,15 @@ public class Events {
 	@SubscribeEvent
 	public void onWWSAttach(OnWWSAttachEvent e) {
 		IWWSG wwsg = e.getWWS();
-		World w = e.getWorld();
+		Level w = e.getWorld();
 		if (!w.isClientSide) {
-			WorldWorkSet w1 = new WorldWorkSet((ServerWorld) w, wwsg);
+			WorldWorkSet w1 = new WorldWorkSet((ServerLevel) w, wwsg);
 			wwsg.addWWS(w1);
 		}
 	}
 
 	@SubscribeEvent
-	public void onTagsUpdated(TagsUpdatedEvent.CustomTagTypes e) {
+	public void onTagsUpdated(TagsUpdatedEvent e) {
 		ParsApplier.refresh();
 		// System.out.println("hhhhhhhhhhhhhhhhhhhh");
 	}

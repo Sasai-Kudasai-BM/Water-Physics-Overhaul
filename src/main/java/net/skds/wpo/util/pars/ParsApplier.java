@@ -4,7 +4,7 @@ import static net.skds.wpo.WPO.LOGGER;
 
 import java.util.Set;
 
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.skds.core.api.IBlockExtended;
 import net.skds.core.util.CustomBlockPars;
