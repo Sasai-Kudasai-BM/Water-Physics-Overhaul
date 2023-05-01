@@ -38,13 +38,15 @@ public class FFluidDefault extends FFluidBasic {
 
 	@Override
 	protected void execute() {
-
-		if (!w.getChunkSource().isPositionTicking(pos.asLong())) {  // ... not sure if fix is correct
-			synchronized (w) {
-				w.getLiquidTicks().scheduleTick(pos, fluid, FFluidStatic.getTickRate((FlowingFluid) fluid, w));
-			}
-			return;
-		}
+		// TODO: disabled for now, because was not doing equalization. However idk what this is for... chunk border checks?
+		// INFO: problem: current pos is never ticking (next to player), thus isPositionTicking does not work here
+		// INFO: why border chunks should still work: we only get here from FlowingFluidMixin.tick(), so pos has to be ticking (and there are checks)
+//		if (!w.getChunkSource().isPositionTicking(pos.asLong())) {
+//			synchronized (w) {
+//				w.getLiquidTicks().scheduleTick(pos, fluid, FFluidStatic.getTickRate((FlowingFluid) fluid, w));
+//			}
+//			return;
+//		}
 
 		if (!validate(pos)) {
 			return;

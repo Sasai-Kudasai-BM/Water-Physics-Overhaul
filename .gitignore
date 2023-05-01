@@ -3,7 +3,8 @@ build
 bin
 run
 logs
-lib
+libs
 .settings
 .vscode
 .idea
+server
