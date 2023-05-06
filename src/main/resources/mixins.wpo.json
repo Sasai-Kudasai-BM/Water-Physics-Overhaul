@@ -9,6 +9,7 @@
 
     "other.BoatEntityMixin",
     "other.FallingBlockEntityMixin",
+    "other.LivingEntityMixin",
 
     "fluids.WaterFluidMixin",
     "fluids.FlowingFluidMixin",
