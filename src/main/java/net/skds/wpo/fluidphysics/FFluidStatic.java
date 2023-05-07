@@ -284,7 +284,7 @@ public class FFluidStatic {
 		}
 
 		if (downsuc) {
-			offset = 0.0F;
+			offset = 0.001F;  // not 0.0 because LiquidBlockRenderer subtracts 0.001 (negative crashes rendering)
 		}
 
 		// int n = -1;
