@@ -31,7 +31,6 @@ public class FluidGateBlockEntity extends BasicTankBlockEntity
 
 	//private FluidTank tank = new FluidTank(500);
 	public float pressure = ATM_PRESSURE;
-	private final LazyOptional<IFluidHandler> holder = LazyOptional.of(() -> tank);
 
 	private boolean atm = true;
 	private int timer = 0;
@@ -87,12 +86,13 @@ public class FluidGateBlockEntity extends BasicTankBlockEntity
 
 		FluidStack fst = tank.getFluid();
 		int am = fst.getAmount();
-		if (am < 125) {
+		if (am < 125) { // TODO replace magic number (search for other occurrences)
 			return;
 		}
 
 
-		for (Direction dir : getDirections()) {
+		Direction.values();
+		for (Direction dir : getDirections()) { // why not use Direction.values() ???
 			if (dir.getOpposite() == state.getValue(BlockStateProperties.FACING)) {
 				continue;
 			}
@@ -110,7 +110,7 @@ public class FluidGateBlockEntity extends BasicTankBlockEntity
 			if (FFluidStatic.canReach(worldPosition, flowPos, Blocks.AIR.defaultBlockState(), flowState, tF, level)) {
 				int dl = am / 125;
 				int lvl = flowFs.getAmount();
-				dl = 8 - lvl >= dl ? dl : 8 - lvl;
+				dl = Math.min(8 - lvl, dl);
 
 				if (dl > 0) {
 					lvl += dl;
@@ -170,13 +170,6 @@ public class FluidGateBlockEntity extends BasicTankBlockEntity
 	@Override
 	public FluidStack drain(int maxDrain, FluidAction action) {
 		return this.tank.drain(maxDrain, action);
-	}
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> capability, Direction facing) {
-		if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
-			return holder.cast();
-		return super.getCapability(capability, facing);
 	}
 
 	@Override

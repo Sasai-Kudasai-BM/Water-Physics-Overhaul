@@ -50,10 +50,6 @@ public class ISTER extends BlockEntityWithoutLevelRenderer {
 
 		this.itemRenderer = Minecraft.getInstance().getItemRenderer();
 		blockEntityRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-		// why do we need these custom block states?
-		this.pipeBlockEntity.boolConnections = new boolean[] { false, false, true, true, false, false };
-		this.pipePumpBlockEntity.facing = Direction.NORTH;
-		this.pipePumpBlockEntity.anim = -1;
 	}
 
 	public static ISTER getInstance(){

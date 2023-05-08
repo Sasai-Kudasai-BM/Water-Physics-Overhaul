@@ -42,14 +42,13 @@ public class PipeBlockEntity extends BasicTankBlockEntity {
 
 	public float[] flow = new float[6];
 	public BlockEntity[] connections = new BlockEntity[6];
-	public boolean[] boolConnections = new boolean[6];
+	public boolean[] boolConnections = new boolean[] { false, false, true, true, false, false };
 	public float pressure = ATM_PRESSURE;
 
 	// public int max = 500;
 
 	private boolean firstTick = true;
 	//private FluidTank tank = new FluidTank(500);
-	private final LazyOptional<IFluidHandler> holder = LazyOptional.of(() -> tank);
 
 	public PipeBlockEntity(BlockPos pos, BlockState state) {
 		super(Entities.PIPE.get(), pos, state);
@@ -370,13 +369,6 @@ public class PipeBlockEntity extends BasicTankBlockEntity {
 		}
 		tag.put("Flow", flowListNBT);
 		return tag;
-	}
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> capability, Direction facing) {
-		if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
-			return holder.cast();
-		return super.getCapability(capability, facing);
 	}
 
 	@Override

@@ -20,7 +20,7 @@ public class PipePumpBlockEntity extends BasicTankBlockEntity implements IConnec
 
 	public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
-	public Direction facing = Direction.UP;
+	public Direction facing;
 	public boolean powered = false;
 	public int anim = 0;
 	public int animSpeed = 10;
@@ -30,7 +30,6 @@ public class PipePumpBlockEntity extends BasicTankBlockEntity implements IConnec
 	// private FluidTank tank = new FluidTank(500);
 	public float pressureIn = ATM_PRESSURE;
 	public float pressureOut = ATM_PRESSURE;
-	private final LazyOptional<IFluidHandler> holder = LazyOptional.of(() -> tank);
 
 	//private int timer = 0;
 
@@ -136,13 +135,6 @@ public class PipePumpBlockEntity extends BasicTankBlockEntity implements IConnec
 	@Override
 	public FluidStack drain(int maxDrain, FluidAction action) {
 		return this.tank.drain(maxDrain, action);
-	}
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> capability, Direction facing) {
-		if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
-			return holder.cast();
-		return super.getCapability(capability, facing);
 	}
 
 	@Override

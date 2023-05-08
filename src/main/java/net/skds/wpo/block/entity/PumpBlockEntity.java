@@ -35,7 +35,6 @@ public class PumpBlockEntity extends BasicTankBlockEntity implements IConnection
 	private static final float ATM_PRESSURE = 1f;
 	// private FluidTank tank = new FluidTank(500);
 	public float pressure = ATM_PRESSURE;
-	private final LazyOptional<IFluidHandler> holder = LazyOptional.of(() -> tank);
 
 	public int timer = 0;
 
@@ -171,13 +170,6 @@ public class PumpBlockEntity extends BasicTankBlockEntity implements IConnection
 	@Override
 	public FluidStack drain(int maxDrain, FluidAction action) {
 		return this.tank.drain(maxDrain, action);
-	}
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> capability, Direction facing) {
-		if (capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
-			return holder.cast();
-		return super.getCapability(capability, facing);
 	}
 
 	@Override
