@@ -492,6 +492,11 @@ public class FFluidStatic {
 	}
 
 	// ================= UTIL ================== //
+	/**
+	 * checks if water can flow from given pos in given direction (to next pos), i.e. if:
+	 * 1. there is place for water to flow in the collision shapes of the two blockstates (intersection not covered)
+	 * 2. the destination accepts water (not solid OR solid and waterlogged)
+	 */
 	private static boolean canReach(BlockGetter world, BlockPos pos, Direction direction) {
 		BlockState state1 = world.getBlockState(pos);
 		BlockState state2 = world.getBlockState(pos.relative(direction));

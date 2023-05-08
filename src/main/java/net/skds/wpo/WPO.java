@@ -15,7 +15,7 @@ import net.skds.wpo.registry.FBlocks;
 import net.skds.wpo.registry.Items;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod("wpo")
+@Mod(WPO.MOD_ID)
 public class WPO
 {
     public static final String MOD_ID = "wpo";
