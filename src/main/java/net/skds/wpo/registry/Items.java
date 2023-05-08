@@ -46,8 +46,8 @@ public class Items {
         return ITEMS.register(ro.getId().getPath(), () -> new BlockItem(ro.get(), prop));
     }
 
-    private static RegistryObject<BlockItem> registerBlockItemWithRenderer(RegistryObject<Block> ro, Properties prop){
-        BlockItem blockItem = new BlockItem(ro.get(), prop){
+    private static RegistryObject<BlockItem> registerBlockItemWithRenderer(RegistryObject<Block> ro, Properties prop) {
+        return ITEMS.register(ro.getId().getPath(), () -> new BlockItem(ro.get(), prop) {
 
             @Override
             public void initializeClient(Consumer<IItemRenderProperties> consumer) {
@@ -60,9 +60,8 @@ public class Items {
                     }
                 });
             }
-        };
-        return ITEMS.register(ro.getId().getPath(), () -> blockItem);
-}
+        });
+    }
 
 	public static void register() {
 		ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
