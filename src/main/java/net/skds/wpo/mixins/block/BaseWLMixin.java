@@ -1,5 +1,6 @@
 package net.skds.wpo.mixins.block;
 
+import net.skds.core.api.IBlockExtraStates;
 import org.spongepowered.asm.mixin.Mixin;
 
 import net.minecraft.world.level.block.BaseCoralPlantTypeBlock;
@@ -28,17 +29,19 @@ import net.skds.wpo.util.interfaces.IBaseWL;
 
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
+// TODO why mix into block here (instead of in sdks core)
 @Mixin(value = { SlabBlock.class, CrossCollisionBlock.class, ChainBlock.class, TrapDoorBlock.class, CampfireBlock.class,
 		LanternBlock.class, ChainBlock.class, StairBlock.class, WallSignBlock.class, StandingSignBlock.class,
 		LadderBlock.class, BaseCoralPlantTypeBlock.class, SeaPickleBlock.class, ChestBlock.class,
 		TrappedChestBlock.class, EnderChestBlock.class, ScaffoldingBlock.class, ConduitBlock.class })
-public class BaseWLMixin extends Block implements IBaseWL {
+public class BaseWLMixin extends Block implements IBaseWL, IBlockExtraStates {
 
 	public BaseWLMixin(Properties properties) {
 		super(properties);
 	}
 
-	protected void customStatesRegister(Block b, StateDefinition.Builder<Block, BlockState> builder) {
+	@Override
+	public void customStatesRegister(Block b, StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(BlockStateProps.FFLUID_LEVEL);
 	}
 

@@ -1,5 +1,6 @@
 package net.skds.wpo.mixins.block;
 
+import net.skds.core.api.IBlockExtraStates;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -20,7 +21,7 @@ import net.skds.wpo.util.interfaces.IBaseWL;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 @Mixin(value = { DoorBlock.class, FenceGateBlock.class, LeavesBlock.class })
-public class ExtraWLBlockMixin extends Block implements IBaseWL, SimpleWaterloggedBlock {
+public class ExtraWLBlockMixin extends Block implements IBaseWL, SimpleWaterloggedBlock, IBlockExtraStates {
 
 	public ExtraWLBlockMixin(Properties properties) {
 		super(properties);
@@ -35,17 +36,17 @@ public class ExtraWLBlockMixin extends Block implements IBaseWL, SimpleWaterlogg
 		}
 	}
 
-	@Inject(method = "<init>", at = @At(value = "TAIL"))
-	protected void ccc(BlockBehaviour.Properties properties, CallbackInfo ci) {
-		if (this.defaultBlockState().hasProperty(BlockStateProperties.WATERLOGGED)) {
-			// this.setDefaultState(this.getDefaultState().with(BlockStateProperties.WATERLOGGED,
-			// Boolean.valueOf(false)));
-			//DefaultStateFixer.addToFix(this);
-		}
-	}
+//	@Inject(method = "<init>", at = @At(value = "TAIL"))
+//	protected void ccc(BlockBehaviour.Properties properties, CallbackInfo ci) {
+//		if (this.defaultBlockState().hasProperty(BlockStateProperties.WATERLOGGED)) {
+//			// this.setDefaultState(this.getDefaultState().with(BlockStateProperties.WATERLOGGED,
+//			// Boolean.valueOf(false)));
+//			//DefaultStateFixer.addToFix(this);
+//		}
+//	}
 
 	@Override
-	public void fixDS() {
+	public void fixDS() { // TODO what is this doing? is this ever called?
 		this.registerDefaultState(this.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, Boolean.valueOf(false)));
 	}
 }
