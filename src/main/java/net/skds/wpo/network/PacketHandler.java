@@ -23,6 +23,5 @@ public class PacketHandler {
 	public static void init() {
 		int id = 0;
 		CHANNEL.registerMessage(id++, DebugPacket.class, DebugPacket::encoder, DebugPacket::decoder, DebugPacket::handle);
-		CHANNEL.registerMessage(id++, PipeUpdatePacket.class, PipeUpdatePacket::encoder, PipeUpdatePacket::decoder, PipeUpdatePacket::handle);
 	}
 }
