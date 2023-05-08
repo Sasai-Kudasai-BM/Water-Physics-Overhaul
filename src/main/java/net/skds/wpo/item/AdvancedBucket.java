@@ -65,7 +65,7 @@ public class AdvancedBucket extends BucketItem implements ICapabilityProvider {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@OnlyIn(Dist.CLIENT) // TODO remove all of these: not needed (also do care about where the code runs)
 	public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip,
 								TooltipFlag flagIn) {
 		ExtendedFHIS fh = new ExtendedFHIS(stack, 1000);

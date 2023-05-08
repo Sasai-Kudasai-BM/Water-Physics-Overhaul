@@ -45,6 +45,7 @@ public class FluidGateBlock extends BaseEntityBlock {
 	@Nullable
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
 //		return level.isClientSide() ? null : createTickerHelper(type, Entities.GATE.get(), FluidGateBlockEntity::tick);
+		// TODO check if possible to split tickers for client and server side (especially if client side not ticking -> null)
 		return createTickerHelper(type, Entities.GATE.get(), FluidGateBlockEntity::tick);
 	}
 
