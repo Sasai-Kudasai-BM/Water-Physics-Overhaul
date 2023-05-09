@@ -15,37 +15,37 @@ import net.skds.wpo.util.interfaces.IBaseWL;
 public class TurboDisplacer {
 
 
-	public static void markForDisplace(ServerLevel w, BlockPos pos, BlockState oldState, BlockState newState) {
-		//World w = (World) w;
+	public static void markForDisplace(ServerLevel serverLevel, BlockPos pos, BlockState oldBS, BlockState newBS) {
+		//World serverLevel = (World) serverLevel;
 		//BlockPos pos = e.getPos();
-		//BlockState oldState = w.getBlockState(pos);
-		FluidState fs = oldState.getFluidState();
-		//FluidState nfs = newState.getFluidState();
-		Fluid f = fs.getType();
-		//BlockState newState = e.getPlacedBlock();
-		Block nb = newState.getBlock();
-		int level = fs.getAmount();
-		//int nlevel = nfs.getLevel();
-		if (fs.isEmpty()) {
+		//BlockState oldBS = serverLevel.getBlockState(pos);
+		FluidState oldFS = oldBS.getFluidState();
+//		FluidState newFS = newBS.getFluidState();
+		Fluid oldFluid = oldFS.getType();
+		//BlockState newBS = e.getPlacedBlock();
+		Block newBlock = newBS.getBlock();
+		int oldLevel = oldFS.getAmount();
+//		int newLevel = newFS.getLevel();
+		if (oldFS.isEmpty()) {
 			return;
 		}
-		if (nb instanceof SimpleWaterloggedBlock && f.isSame(Fluids.WATER)) {
-			if (level == WPOConfig.MAX_FLUID_LEVEL) {
-				w.setBlock(pos, FFluidStatic.getUpdatedState(newState, level, f), 3);
+		if (newBlock instanceof SimpleWaterloggedBlock && oldFluid.isSame(Fluids.WATER)) {
+			if (oldLevel == WPOConfig.MAX_FLUID_LEVEL) {
+				serverLevel.setBlockAndUpdate(pos, FFluidStatic.getUpdatedState(newBS, oldLevel, oldFluid));
 				return;
-			} else if (nb instanceof IBaseWL) {				
-				w.setBlock(pos, FFluidStatic.getUpdatedState(newState, level, f), 3);
+			} else if (newBlock instanceof IBaseWL) {
+				serverLevel.setBlockAndUpdate(pos, FFluidStatic.getUpdatedState(newBS, oldLevel, oldFluid));
 				return;
 			}
 		}
 		
-		if (!FFluidStatic.canOnlyFullCube(newState) && nb instanceof IBaseWL && f.isSame(Fluids.WATER)) {
-			newState = FFluidStatic.getUpdatedState(newState, fs.getAmount(), Fluids.WATER);
-			w.setBlockAndUpdate(pos, newState);
+		if (!FFluidStatic.canOnlyFullCube(newBS) && newBlock instanceof IBaseWL && oldFluid.isSame(Fluids.WATER)) {
+			newBS = FFluidStatic.getUpdatedState(newBS, oldFS.getAmount(), Fluids.WATER);
+			serverLevel.setBlockAndUpdate(pos, newBS);
 			return;
 		}
 
-		FluidDisplacer2 displacer = new FluidDisplacer2(w, oldState);
+		FluidDisplacer2 displacer = new FluidDisplacer2(serverLevel, oldBS);
 		FFluidStatic.iterateFluidWay(10, pos, displacer);
 	}
     

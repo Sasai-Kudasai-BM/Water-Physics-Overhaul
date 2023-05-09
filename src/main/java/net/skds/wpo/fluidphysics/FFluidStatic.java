@@ -561,7 +561,7 @@ public class FFluidStatic {
 	}
 
 	public static boolean canOnlyFullCube(Block b) {
-		return (b instanceof SimpleWaterloggedBlock) ? !(b instanceof IBaseWL) : false;
+		return b instanceof SimpleWaterloggedBlock && !(b instanceof IBaseWL);
 	}
 
 	// ================= ITEMS ==================//
