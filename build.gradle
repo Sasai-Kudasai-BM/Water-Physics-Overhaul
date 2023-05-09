@@ -21,16 +21,13 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
-//var forge_version = '1.16.5'
 var mc_version = '1.17.1'
-//var forge_version = '36.0.14'
 var forge_version = '37.1.1'
 var modid = 'wpo'
 group = 'net.skds.wpo'
 version = '0.2.0'
 archivesBaseName = "water_physics_overhaul-${mc_version}"
 
-//java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 java.toolchain.languageVersion = JavaLanguageVersion.of(16)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
