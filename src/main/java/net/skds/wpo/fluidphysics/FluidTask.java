@@ -33,7 +33,7 @@ public abstract class FluidTask implements ITaskRunnable {
 			return false;
 		}
 		BlockPos pos2 = BlockPos.of(pos);
-		w.getLiquidTicks().scheduleTick(pos2, w.getFluidState(pos2).getType(), 2);
+		w.scheduleTick(pos2, w.getFluidState(pos2).getType(), 2);
 		return true;
 	}
 	

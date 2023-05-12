@@ -1,16 +1,8 @@
 package net.skds.wpo.fluidphysics;
 
-import java.util.Comparator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
-
-import io.netty.util.internal.ConcurrentSet;
-import net.minecraft.world.level.material.FlowingFluid;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.ServerTickList;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.material.FlowingFluid;
 import net.skds.core.Events;
 import net.skds.core.api.IWWS;
 import net.skds.core.api.IWWSG;
@@ -18,13 +10,18 @@ import net.skds.core.api.multithreading.ITaskRunnable;
 import net.skds.core.multithreading.MTHooks;
 import net.skds.wpo.util.TaskBlocker;
 
+import java.util.Comparator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
+
 public class WorldWorkSet implements IWWS {
 	public final IWWSG glob;
 	public final ServerLevel world;
 
-	public ConcurrentSet<Long> excludedTasks = new ConcurrentSet<>();
+	public ConcurrentHashMap.KeySetView<Long, Boolean> excludedTasks = ConcurrentHashMap.newKeySet();
 
-	private ConcurrentSet<Long> lockedEq = new ConcurrentSet<>();
+	private ConcurrentHashMap.KeySetView<Long, Boolean> lockedEq = ConcurrentHashMap.newKeySet();
 	private ConcurrentHashMap<Long, Integer> ntt = new ConcurrentHashMap<>();
 	private static final Comparator<FluidTask> comp = new Comparator<FluidTask>() {
 		@Override
@@ -137,10 +134,9 @@ public class WorldWorkSet implements IWWS {
 	@Override
 	public void close() {
 		lockedEq.clear();
-		ServerTickList<Fluid> stl = world.getLiquidTicks();
 		ntt.forEach((lp, t) -> {
 			BlockPos pos = BlockPos.of(lp);
-			stl.scheduleTick(pos, world.getFluidState(pos).getType(), t + 2);
+			world.scheduleTick(pos, world.getFluidState(pos).getType(), t + 2);
 		});
 		ntt.clear();
 		TASKS.forEach(t -> t.revoke(world));

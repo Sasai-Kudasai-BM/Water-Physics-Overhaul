@@ -3,7 +3,7 @@ package net.skds.wpo.registry;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fmllegacy.RegistryObject;
+import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.skds.wpo.WPO;

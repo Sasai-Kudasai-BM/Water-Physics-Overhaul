@@ -1,12 +1,8 @@
 package net.skds.wpo.fluidphysics;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
+import net.minecraftforge.registries.ForgeRegistries;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -247,251 +243,346 @@ public class FFluidStatic {
 
 	// ================ RENDERER ================== //
 
-	public static float[] getConH(BlockGetter w, BlockPos pos, Fluid fluid) {
-		int[] count = new int[] { 1, 1, 1, 1 };
-		boolean[] conner = new boolean[4];
-		boolean[] setconner = new boolean[4];
-		float[] setconnervl = new float[4];
-		// boolean downtry = false;
-		boolean downsuc = false;
+	public static float getCornerHeight(BlockGetter bg, Fluid fluid, BlockPos centerPos, BlockPos side1Pos, BlockPos side2Pos, BlockPos cornerPos){
+		BlockPos aboveCenterPos = centerPos.above();
+		BlockPos belowCenterPos = centerPos.below();
+		float minLvl = 0.0036F;  // minimal height so looks detached from ground
+		float maxLvl = 0.99999F;  // prevent z-fighting with block above (probably?)
 
-		float offset = 0.0036F;
-		float offset2 = 0.99999F;
+		/* reach (can flow between BlockPos') */
+		boolean centerCanReachUp = canReach(centerPos, aboveCenterPos, fluid, bg);
+		boolean centerCanReachSide1 = canReach(centerPos, side1Pos, fluid, bg);
+		boolean centerCanReachSide2 = canReach(centerPos, side2Pos, fluid, bg);
+		boolean side1CanReachDown = canReach(side1Pos, side1Pos.below(), fluid, bg);
+		boolean side2CanReachDown = canReach(side2Pos, side2Pos.below(), fluid, bg);
+		boolean side1CanReachCorner = canReach(side1Pos, cornerPos, fluid, bg);
+		boolean side2CanReachCorner = canReach(side2Pos, cornerPos, fluid, bg);
+		/* BlockPos is (same) fluid */
+		boolean aboveCenterIsFluid = isSameFluid(aboveCenterPos, fluid, bg);
+		boolean belowCenterIsFluid = isSameFluid(belowCenterPos, fluid, bg);
+		boolean side1IsFluid = isSameFluid(side1Pos, fluid, bg);
+		boolean side2IsFluid = isSameFluid(side2Pos, fluid, bg);
+		boolean belowSide1IsFluid = isSameFluid(side1Pos.below(), fluid, bg);
+		boolean belowSide2IsFluid = isSameFluid(side2Pos.below(), fluid, bg);
+		boolean cornerIsFluid = isSameFluid(cornerPos, fluid, bg);
+		boolean belowCornerIsFluid = isSameFluid(cornerPos, fluid, bg);
+		/* connections: both have fluid and can flow between */
+		boolean centerConnectUp = canReachAndSameFluid(centerPos, centerPos.above(), fluid, bg);
+		boolean centerConnectSide1 = centerCanReachSide1 && side1IsFluid;
+		boolean centerConnectSide2 = centerCanReachSide2 && side2IsFluid;
+		boolean side1ConnectUp = canReachAndSameFluid(side1Pos, side1Pos.above(), fluid, bg);
+		boolean side2ConnectUp = canReachAndSameFluid(side2Pos, side2Pos.above(), fluid, bg);
+		boolean side1ConnectCorner = side1CanReachCorner && cornerIsFluid;
+		boolean side2ConnectCorner = side2CanReachCorner && cornerIsFluid;
+		boolean cornerConnectUp = canReachAndSameFluid(cornerPos, cornerPos.above(), fluid, bg);
 
-		BlockPos posd = null;
-		BlockState stated = null;
-
-		BlockState state = w.getBlockState(pos);
-		float level = state.getFluidState().getOwnHeight();
-		float[] sum = new float[] { level, level, level, level };
-
-		BlockPos posu = pos.above();
-		BlockState statu = w.getBlockState(posu);
-		FluidState ufs = w.getFluidState(posu);
-
-		boolean posus = canReach(pos, posu, state, statu, fluid, w);
-
-		if (fluid.isSame(ufs.getType()) && posus) {
-			return new float[] { 1.0F, 1.0F, 1.0F, 1.0F };
+		/* adapt min and max levels */
+		if (centerCanReachUp){  // above can be flooded => no z-fighting
+			maxLvl = 1.0F;
+		}
+		if (belowCenterIsFluid) {  // can connect smoothly when down-flowing without z-fighting
+			minLvl =  0.0F + 0.001F; // LiquidBlockRenderer subtracts 0.001F; otherwise negative => render crash
 		}
 
-		posd = pos.below();
-		stated = w.getBlockState(posd);
-		downsuc = (stated.getFluidState().getType().isSame(fluid));
-
-		if (posus) {
-			offset2 = 1.0F;
+		// Fluid above => max level
+		if (centerConnectUp){ // should never happen, because renderer catches this case using getHeight
+			return maxLvl;
 		}
-
-		if (downsuc) {
-			offset = 0.001F;  // not 0.0 because LiquidBlockRenderer subtracts 0.001 (negative crashes rendering)
+		if (centerPos.getX() == -256 && centerPos.getZ() == -109){
+			int a = 3;
 		}
-
-		// int n = -1;
-		Direction dir = Direction.EAST;
-		for (int n = 0; n < 4; n++) {
-			dir = dir.getCounterClockWise();
-			// ++n;
-			int n2 = n > 0 ? n - 1 : 3;
-			BlockPos pos2 = pos.relative(dir);
-			BlockState state2 = w.getBlockState(pos2);
-
-			boolean reach2 = canReach(pos, pos2, state, state2, fluid, w);
-			boolean same2 = state2.getFluidState().getType().isSame(fluid);
-			if (same2 && reach2) {
-
-				BlockPos pos2u = pos2.above();
-				BlockState state2u = w.getBlockState(pos2u);
-				if (state2u.getFluidState().getType().isSame(fluid)
-						&& canReach(pos2, pos2u, state2, state2u, fluid, w)) {
-					conner[n] = true;
-					conner[n2] = true;
-					setconner[n] = true;
-					setconner[n2] = true;
-					setconnervl[n] = offset2;
-					setconnervl[n2] = offset2;
-				} else {
-					float level2 = state2.getFluidState().getOwnHeight();
-					sum[n] += level2;
-					sum[n2] += level2;
-					count[n]++;
-					count[n2]++;
-				}
-				Direction[] dirside = new Direction[2];
-				dirside[0] = dir.getClockWise();
-				dirside[1] = dir.getCounterClockWise();
-
-				for (int i = 0; i < 2; i++) {
-					if (i == 0 && (conner[n2])) {
-						continue;
-					}
-					if (i == 1 && (conner[n])) {
-						continue;
-					}
-					BlockPos pos2dir = pos2.relative(dirside[i]);
-					BlockState state2dir = w.getBlockState(pos2dir);
-					if (canReach(pos2, pos2dir, state2, state2dir, fluid, w)) {
-
-						if (state2dir.getFluidState().getType().isSame(fluid)) {
-
-							BlockPos pos2diru = pos2dir.above();
-							BlockState state2diru = w.getBlockState(pos2diru);
-							if (state2diru.getFluidState().getType().isSame(fluid)
-									&& canReach(pos2dir, pos2diru, state2dir, state2diru, fluid, w)) {
-								if (i == 0) {
-									setconnervl[n2] = offset2;
-									setconner[n2] = true;
-									conner[n2] = true;
-								} else {
-									setconnervl[n] = offset2;
-									setconner[n] = true;
-									conner[n] = true;
-								}
-							} else {
-								float level2dir = state2dir.getFluidState().getOwnHeight();
-								if (i == 0) {
-									sum[n2] += level2dir;
-									count[n2]++;
-									conner[n2] = true;
-								} else {
-									sum[n] += level2dir;
-									count[n]++;
-									conner[n] = true;
-								}
-							}
-
-						} else if (state2dir.getFluidState().isEmpty()) {
-							BlockPos pos2dird = pos2dir.below();
-							BlockState state2dird = w.getBlockState(pos2dird);
-							if (state2dird.getFluidState().getType().isSame(fluid)
-									&& canReach(pos2dir, pos2dird, state2dir, state2dird, fluid, w)) {
-								if (i == 0) {
-									if (!setconner[n2])
-										setconnervl[n2] = offset;
-									setconner[n2] = true;
-									conner[n2] = true;
-								} else {
-									if (!setconner[n2])
-										setconnervl[n] = offset;
-									setconner[n] = true;
-									conner[n] = true;
-								}
-							}
-						}
-					}
-				}
-			} else {
-
-				if (reach2) {
-					BlockPos pos2d = pos2.below();
-					BlockState state2d = w.getBlockState(pos2d);
-					if (state2d.getFluidState().getType().isSame(fluid)
-							&& canReach(pos2, pos2d, state2, state2d, fluid, w)) {
-						if (!setconner[n]) {
-							setconner[n] = true;
-							setconnervl[n] = offset;
-						}
-						if (!setconner[n2]) {
-							setconner[n2] = true;
-							setconnervl[n2] = offset;
-						}
-					}
-				}
-			}
+		// UP-FLOW: if fluid higher than block on sides or corner => max level
+		if (centerConnectSide1 && side1ConnectUp){
+			return maxLvl;
 		}
-
-		float[] ch = new float[4];
-		for (int i = 0; i < 4; i++) {
-			if (setconner[i]) {
-				ch[i] = setconnervl[i];
-			} else {
-				ch[i] = (float) sum[i] / count[i];
-			}
+		if (centerConnectSide2 && side2ConnectUp){
+			return maxLvl;
 		}
-		return ch;
+		if (centerConnectSide1 && side1ConnectCorner && cornerConnectUp){
+			return maxLvl;
+		}
+		if (centerConnectSide2 && side2ConnectCorner && cornerConnectUp){
+			return maxLvl;
+		}
+		// DOWN-FLOW: if fluid lower than block sides or corner => min level
+		// (Up-flow dominates/takes precedence over this => guaranteed by returns in up-flow)
+		if (centerCanReachSide1 && !side1IsFluid && side1CanReachDown && belowSide1IsFluid){
+			return minLvl;
+		}
+		if (centerCanReachSide2 && !side2IsFluid && side2CanReachDown && belowSide2IsFluid){
+			return minLvl;
+		}
+		if (centerConnectSide1 && side1CanReachCorner && !cornerIsFluid && belowCornerIsFluid){
+			return minLvl;
+		}
+		if (centerConnectSide2 && side2CanReachCorner && !cornerIsFluid && belowCornerIsFluid){
+			return minLvl;
+		}
+		// HORZ-FLOW: average over connected sides and corners
+		// (Both Up-flow and down-flow dominates/takes precedence over this => guaranteed by returns in up-flow and down-flow)
+		float sum = bg.getFluidState(centerPos).getOwnHeight();
+		int count = 1;
+		if (centerConnectSide1){
+			sum += bg.getFluidState(side1Pos).getOwnHeight();
+			count += 1;
+		}
+		if (centerConnectSide2){
+			sum += bg.getFluidState(side2Pos).getOwnHeight();
+			count += 1;
+		}
+		if (centerConnectSide1 && side1ConnectCorner || centerConnectSide2 && side2ConnectCorner){
+			sum += bg.getFluidState(cornerPos).getOwnHeight();
+			count += 1;
+		}
+		return sum / count;
 	}
 
-	public static float getConH(BlockGetter w, BlockPos p, Fluid f, BlockPos dir) {
-		// p = p.add(-dir.getX(), 0, -dir.getZ());
-		// Blockreader w = (Blockreader) wi;
-		BlockPos pu = p.above();
-		FluidState ufs = w.getFluidState(pu);
-		if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
-			return 1.0f;
-		}
-		FluidState fsm = w.getFluidState(p);
-
-		float sl = fsm.getOwnHeight();
-		int i = 1;
-		BlockPos dp = p.offset(dir.getX(), 0, 0);
-		BlockPos dp2 = p.offset(0, 0, dir.getZ());
-		FluidState dfs = w.getFluidState(dp);
-		FluidState dfs2 = w.getFluidState(dp2);
-
-		boolean s = false;
-
-		if (!dfs.isEmpty() && isSameFluid(dfs.getType(), f)) {
-			pu = dp.above();
-			ufs = w.getFluidState(pu);
-			if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
-				return 1.0f;
-			}
-
-			sl += dfs.getOwnHeight();
-			i++;
-			s = true;
-		} else if (dfs.isEmpty() && canReach(w, p, Direction.getNearest(dir.getX(), 0, 0))) {
-			BlockPos downp = dp.below();
-			FluidState downfs = w.getFluidState(downp);
-			if (!downfs.isEmpty() && isSameFluid(downfs.getType(), f) && downfs.getOwnHeight() == 1.0F) {
-				return 0.0F;
-			}
-		}
-
-		if (!dfs2.isEmpty() && isSameFluid(dfs2.getType(), f)) {
-			pu = dp2.above();
-			ufs = w.getFluidState(pu);
-			if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
-				return 1.0f;
-			}
-
-			sl += dfs2.getOwnHeight();
-			i++;
-			s = true;
-		} else if (dfs2.isEmpty() && canReach(w, p, Direction.getNearest(0, 0, dir.getZ()))) {
-			BlockPos downp = dp2.below();
-			FluidState downfs = w.getFluidState(downp);
-			if (!downfs.isEmpty() && isSameFluid(downfs.getType(), f) && downfs.getOwnHeight() == 1.0F) {
-				return 0.0F;
-			}
-		}
-
-		if (s) {
-			BlockPos dp3 = p.offset(dir);
-			FluidState dfs3 = w.getFluidState(dp3);
-
-			if (!dfs3.isEmpty() && isSameFluid(dfs3.getType(), f)) {
-				pu = dp3.above();
-				ufs = w.getFluidState(pu);
-				if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
-					return 1.0f;
-				}
-
-				sl += dfs3.getOwnHeight();
-				i++;
-			} else if (dfs3.isEmpty()) {
-				BlockPos downp = dp3.below();
-				FluidState downfs = w.getFluidState(downp);
-				if (!downfs.isEmpty() && isSameFluid(downfs.getType(), f) && downfs.getOwnHeight() == 1.0F
-						&& canReach(w, dp3, Direction.getNearest(0, 1, 0))) {
-					return 0.0F;
-				}
-			}
-		}
-		return sl /= i;
-	}
+//	public static float[] getConH(BlockGetter w, BlockPos pos, Fluid fluid) {
+//		// this
+//		BlockState state = w.getBlockState(pos);
+//
+//		// array indices are corner numbers
+//		// +–––+–––+–––+
+//		// | 1 | N | 0 |
+//		// +–––+–––+–––+
+//		// | W |pos| E |
+//		// +–––+–––+–––+
+//		// | 2 | S | 3 |
+//		// +–––+–––+–––+
+//		// 1. if above pos fluid & reachable => all maxLvl
+//		// 2. if side/corner full with fluid above => corner(s) = maxLvl (dominates over avg and min)
+//		// 4. if neither sides nor corners full => avg levels (count every side and corner twice)
+//		// 5. if side/corner empty AND no side/corner full => minLvl (dominates over avg)
+//		// full side/corner dominates empty side/corner with fluid below (ramp down instead of creating ditches)
+//		// empty side/corner with fluid below dominates over partly filled (down suction)
+//
+//		// add this pos fluid to averaging
+//		float level = state.getFluidState().getOwnHeight();
+//		float[] sum = new float[] { level, level, level, level };
+//		int[] count = new int[] { 1, 1, 1, 1 };
+//
+//		// all arrays indexed
+//		boolean[] setCorners = new boolean[4]; // = false
+//		float[] setCornerLvl = new float[4]; // = 0.0f
+//
+//		float minLvl = 0.0036F;  // minimal height so is detached from ground
+//		float maxLvl = 0.99999F;  // prevent z fighting?
+//
+//		/* above */
+//		BlockPos posAbove = pos.above();
+//		BlockState stateAbove = w.getBlockState(posAbove);
+//		boolean aboveIsSameFluid = fluid.isSame(stateAbove.getFluidState().getType());
+//		boolean canReachAbove = canReach(pos, posAbove, state, stateAbove, fluid, w);
+//		if (aboveIsSameFluid && canReachAbove) {
+//			return new float[] { 1.0F, 1.0F, 1.0F, 1.0F };
+//		}
+//
+//		if (canReachAbove) {  // above can be flooded => overlap okay
+//			maxLvl = 1.0F;
+//		}
+//
+//		/* below */
+//		BlockPos posBelow = pos.below();
+//		BlockState stateBelow = w.getBlockState(posBelow);
+//		boolean belowIsSameFluid = (stateBelow.getFluidState().getType().isSame(fluid));
+//		if (belowIsSameFluid) { // lower minimal height, because there is the same fluid below
+//			minLvl = 0.001F;  // not 0.0 because LiquidBlockRenderer subtracts 0.001 (negative crashes rendering)
+//		}
+//
+//		Direction dir = Direction.EAST;
+//		for (int leftCornerId = 0; leftCornerId < 4; leftCornerId++) {
+//			dir = dir.getCounterClockWise();
+//			int rightCornerId = leftCornerId > 0 ? leftCornerId - 1 : 3;
+//			// dir -> [E, N, W, S]
+//			// left (corner; wrt dir) -> [0, 1, 2, 3]
+//			// right (corner; wrt dir) -> [3, 0, 1, 2]
+//			// +–––+–––+–––+
+//			// | 1 | N | 0 |
+//			// +–––+–––+–––+
+//			// | W |pos| E |
+//			// +–––+–––+–––+
+//			// | 2 | S | 3 |
+//			// +–––+–––+–––+
+//
+//			/* side */
+//			BlockPos sidePos = pos.relative(dir);
+//			BlockState sideState = w.getBlockState(sidePos);
+//			boolean canReachSide = canReach(pos, sidePos, state, sideState, fluid, w);
+//			if (canReachSide){
+//				boolean sideIsSameFluid = sideState.getFluidState().getType().isSame(fluid);
+//				if (sideIsSameFluid) {
+////				Direction[] dirside = new Direction[2];
+////				dirside[0] = dir.getClockWise();
+////				dirside[1] = dir.getCounterClockWise();
+//					Direction dirRight = dir.getClockWise(); // right
+//					Direction dirLeft = dir.getCounterClockWise(); // left
+//					Map<Integer, Direction> corner2DirFromSide = Map.of(rightCornerId, dirRight, leftCornerId, dirLeft);
+//					// i -> [0, 1]  ~ [right, left]
+//					// Direction (of corners) -> [left of side, right of side]
+////				for (int i = 0; i < 2; i++) {
+//					for (int cornerId : List.of(rightCornerId, leftCornerId)) {
+//						/* above side */
+//						BlockPos aboveSidePos = sidePos.above();
+//						BlockState aboveSideState = w.getBlockState(aboveSidePos);
+//						boolean sideCanReachAboveSide = canReach(sidePos, aboveSidePos, sideState, aboveSideState, fluid, w);
+//						boolean aboveSideIsSameFluid = aboveSideState.getFluidState().getType().isSame(fluid);
+//						if (sideCanReachAboveSide && aboveSideIsSameFluid) { // side is completely full
+//							setCornerLvl[cornerId] = maxLvl;
+//							setCorners[cornerId] = true;
+//						} else { // not same fluid above side (or not reachable) => add side lvl, but also check corners
+//							sum[cornerId] += sideState.getFluidState().getOwnHeight();
+//							count[cornerId]++;
+//							/* corner */
+//							BlockPos cornerPos = sidePos.relative(corner2DirFromSide.get(cornerId));
+//							BlockState cornerState = w.getBlockState(cornerPos);
+//							boolean sideCanReachCorner = canReach(sidePos, cornerPos, sideState, cornerState, fluid, w);
+//							if (sideCanReachCorner) {
+//								boolean cornerIsSameFluid = cornerState.getFluidState().getType().isSame(fluid);
+//								if (cornerIsSameFluid) {
+//									/* above corner */
+//									BlockPos aboveCornerPos = cornerPos.above();
+//									BlockState aboveCornerState = w.getBlockState(aboveCornerPos);
+//									boolean cornerCanReachAbove = canReach(cornerPos, aboveCornerPos, cornerState, aboveCornerState, fluid, w);
+//									boolean aboveCornerIsSameFluid = aboveCornerState.getFluidState().getType().isSame(fluid);
+//									if (cornerCanReachAbove && aboveCornerIsSameFluid) { // corner is completely full
+//										setCornerLvl[cornerId] = maxLvl;
+//										setCorners[cornerId] = true;
+//									} else { // not same fluid above corner (or not reachable) => add corner lvl
+//										sum[cornerId] += cornerState.getFluidState().getOwnHeight();
+//										count[cornerId]++;
+//									}
+//								} else if (cornerState.getFluidState().isEmpty()) { // corner is empty TODO bug? isEmpty but not same fluid?
+//									/* below corner */
+//									BlockPos belowCornerPos = cornerPos.below();
+//									BlockState belowCornerState = w.getBlockState(belowCornerPos);
+//									boolean cornerCanReachBelow = canReach(cornerPos, belowCornerPos, cornerState, belowCornerState, fluid, w);
+//									boolean belowCornerIsSameFluid = belowCornerState.getFluidState().getType().isSame(fluid);
+//									if (cornerCanReachBelow && belowCornerIsSameFluid) {
+//										if (!setCorners[cornerId])
+//											setCornerLvl[cornerId] = minLvl;
+//										setCorners[cornerId] = true;
+//									}
+//								}
+//							}
+//						}
+//					}
+//				} else { // not same fluid on side
+//					/* check below side */
+//					BlockPos belowSidePos = sidePos.below();
+//					BlockState belowSideState = w.getBlockState(belowSidePos);
+//					boolean sideCanReachBelow = canReach(sidePos, belowSidePos, sideState, belowSideState, fluid, w);
+//					boolean belowSideIsSameFluid = belowSideState.getFluidState().getType().isSame(fluid);
+//					if (sideCanReachBelow && belowSideIsSameFluid) {
+//						if (!setCorners[leftCornerId]) { // full corner dominates empty side
+//							setCorners[leftCornerId] = true;
+//							setCornerLvl[leftCornerId] = minLvl;
+//						}
+//						if (!setCorners[rightCornerId]) { // full corner dominates empty side
+//							setCorners[rightCornerId] = true;
+//							setCornerLvl[rightCornerId] = minLvl;
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		// set corner levels (of this block)
+//		float[] thisLvl = new float[4];
+//		for (int i = 0; i < 4; i++) {
+//			if (setCorners[i]) {
+//				thisLvl[i] = setCornerLvl[i];
+//			} else { // average between lvl of corner and touching sides (sum = )
+//				thisLvl[i] = (float) sum[i] / count[i];
+//			}
+//		}
+//		return thisLvl;
+//	}
+//
+//	public static float getConH(BlockGetter w, BlockPos p, Fluid f, BlockPos dir) {
+//		// p = p.add(-dir.getX(), 0, -dir.getZ());
+//		// Blockreader w = (Blockreader) wi;
+//		BlockPos pu = p.above();
+//		FluidState ufs = w.getFluidState(pu);
+//		if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
+//			return 1.0f;
+//		}
+//		FluidState fsm = w.getFluidState(p);
+//
+//		float sl = fsm.getOwnHeight();
+//		int i = 1;
+//		BlockPos dp = p.offset(dir.getX(), 0, 0);
+//		BlockPos dp2 = p.offset(0, 0, dir.getZ());
+//		FluidState dfs = w.getFluidState(dp);
+//		FluidState dfs2 = w.getFluidState(dp2);
+//
+//		boolean s = false;
+//
+//		if (!dfs.isEmpty() && isSameFluid(dfs.getType(), f)) {
+//			pu = dp.above();
+//			ufs = w.getFluidState(pu);
+//			if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
+//				return 1.0f;
+//			}
+//
+//			sl += dfs.getOwnHeight();
+//			i++;
+//			s = true;
+//		} else if (dfs.isEmpty() && canReach(w, p, Direction.getNearest(dir.getX(), 0, 0))) {
+//			BlockPos downp = dp.below();
+//			FluidState downfs = w.getFluidState(downp);
+//			if (!downfs.isEmpty() && isSameFluid(downfs.getType(), f) && downfs.getOwnHeight() == 1.0F) {
+//				return 0.0F;
+//			}
+//		}
+//
+//		if (!dfs2.isEmpty() && isSameFluid(dfs2.getType(), f)) {
+//			pu = dp2.above();
+//			ufs = w.getFluidState(pu);
+//			if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
+//				return 1.0f;
+//			}
+//
+//			sl += dfs2.getOwnHeight();
+//			i++;
+//			s = true;
+//		} else if (dfs2.isEmpty() && canReach(w, p, Direction.getNearest(0, 0, dir.getZ()))) {
+//			BlockPos downp = dp2.below();
+//			FluidState downfs = w.getFluidState(downp);
+//			if (!downfs.isEmpty() && isSameFluid(downfs.getType(), f) && downfs.getOwnHeight() == 1.0F) {
+//				return 0.0F;
+//			}
+//		}
+//
+//		if (s) {
+//			BlockPos dp3 = p.offset(dir);
+//			FluidState dfs3 = w.getFluidState(dp3);
+//
+//			if (!dfs3.isEmpty() && isSameFluid(dfs3.getType(), f)) {
+//				pu = dp3.above();
+//				ufs = w.getFluidState(pu);
+//				if (!ufs.isEmpty() && isSameFluid(ufs.getType(), f)) {
+//					return 1.0f;
+//				}
+//
+//				sl += dfs3.getOwnHeight();
+//				i++;
+//			} else if (dfs3.isEmpty()) {
+//				BlockPos downp = dp3.below();
+//				FluidState downfs = w.getFluidState(downp);
+//				if (!downfs.isEmpty() && isSameFluid(downfs.getType(), f) && downfs.getOwnHeight() == 1.0F
+//						&& canReach(w, dp3, Direction.getNearest(0, 1, 0))) {
+//					return 0.0F;
+//				}
+//			}
+//		}
+//		return sl /= i;
+//	}
 
 	// ================= UTIL ================== //
+	private static boolean isSameFluid(BlockPos pos, Fluid fluid, BlockGetter bg){
+		return fluid.isSame(bg.getFluidState(pos).getType());
+	}
+
 	/**
 	 * checks if water can flow from given pos in given direction (to next pos), i.e. if:
 	 * 1. there is place for water to flow in the collision shapes of the two blockstates (intersection not covered)
@@ -509,6 +600,16 @@ public class FFluidStatic {
 			return true;
 		}
 		return !Shapes.mergedFaceOccludes(voxelShape1, voxelShape2, direction);
+	}
+
+	public static boolean canReachAndSameFluid(BlockPos pos1, BlockPos pos2, Fluid f1, BlockGetter bg){
+		return canReach(pos1, pos2, f1, bg) && f1.isSame(bg.getFluidState(pos2).getType());
+	}
+
+	public static boolean canReach(BlockPos pos1, BlockPos pos2, Fluid f, BlockGetter bg){
+		BlockState state1 = bg.getBlockState(pos1);
+		BlockState state2 = bg.getBlockState(pos2);
+		return canReach(pos1, pos2, state1, state2, f, bg);
 	}
 
 	public static boolean canReach(BlockPos pos1, BlockPos pos2, BlockState state1, BlockState state2, Fluid fluid,
@@ -604,7 +705,7 @@ public class FFluidStatic {
 			pos = pos.relative(targB.getDirection());
 			bs = w.getBlockState(pos);
 			fs = bs.getFluidState();
-		} 
+		}
 		if (!w.isClientSide && f != Fluids.EMPTY && bs.getBlock() instanceof SimpleWaterloggedBlock) {
 			FluidTasksManager.addFluidTask((ServerLevel) w, pos, bs);
 		}
@@ -640,7 +741,7 @@ public class FFluidStatic {
 			BucketFlusher flusher = new BucketFlusher(w, f, bh, e);
 			if (iterateFluidWay(WPOConfig.COMMON.maxBucketDist.get(), pos, flusher) && mobBucketItem != null) {
 				mobBucketItem.checkExtraContent(e.getPlayer(), w, bucket, pos);
-			}			
+			}
 		}
 	}
 
@@ -821,6 +922,7 @@ public class FFluidStatic {
 			p.awardStat(Stats.ITEM_USED.get(item));
 			SoundEvent soundevent = fluid.getAttributes().getFillSound();
 			if (soundevent == null)
+//				boolean isLava = ForgeRegistries.FLUIDS.tags().getTag(FluidTags.LAVA).contains(fluid);  // to fix deprecation
 				soundevent = fluid.is(FluidTags.LAVA) ? SoundEvents.BUCKET_FILL_LAVA
 						: SoundEvents.BUCKET_FILL;
 			p.playSound(soundevent, 1.0F, 1.0F);

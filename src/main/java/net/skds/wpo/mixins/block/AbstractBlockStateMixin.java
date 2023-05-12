@@ -60,7 +60,7 @@ public abstract class AbstractBlockStateMixin {
 			BlockState s = (BlockState) (Object) this;
 			fixFFLNoWL((Level) worldIn, s, posIn);
 			if (s.getValue(BlockStateProperties.WATERLOGGED))
-				worldIn.getLiquidTicks().scheduleTick(posIn, s.getFluidState().getType(),
+				worldIn.scheduleTick(posIn, s.getFluidState().getType(),
 						FFluidStatic.getTickRate((FlowingFluid) s.getFluidState().getType(), worldIn));
 		}
 	}
@@ -72,7 +72,7 @@ public abstract class AbstractBlockStateMixin {
 			BlockState s = (BlockState) (Object) this;
 			fixFFLNoWL(worldIn, s, currentPos);
 			if (s.getValue(BlockStateProperties.WATERLOGGED))
-				worldIn.getLiquidTicks().scheduleTick(currentPos, s.getFluidState().getType(),
+				worldIn.scheduleTick(currentPos, s.getFluidState().getType(),
 						FFluidStatic.getTickRate((FlowingFluid) s.getFluidState().getType(), worldIn));
 		}
 	}

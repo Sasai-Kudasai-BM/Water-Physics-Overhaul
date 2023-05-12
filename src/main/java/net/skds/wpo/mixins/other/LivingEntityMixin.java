@@ -12,6 +12,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+import static net.skds.wpo.WPO.LOGGER;
+
 @Mixin(value = { LivingEntity.class })
 public abstract class LivingEntityMixin extends Entity {
     @Shadow protected abstract void defineSynchedData();
@@ -41,7 +43,7 @@ public abstract class LivingEntityMixin extends Entity {
     // CONVERGENCE (forward hold): velocity -> f6 / (1 - f5)
 
     // these two variable fixes fix walking speed in water (aiStep calls travel internally, so we're good)
-    @ModifyVariable(method = "travel", at = @At("STORE"), name = "f6")
+    @ModifyVariable(method = "travel", at = @At("STORE"), name = "f5")
     private float correctWaterSpeedForDepth(float oldWaterSpeed) {
         if (oldWaterSpeed == 0.02F) {  // this is the init value: this only checks if the call is right after init
             FluidState fluidstate = this.level.getFluidState(this.blockPosition());
@@ -60,7 +62,7 @@ public abstract class LivingEntityMixin extends Entity {
         }
     }
 
-    @ModifyVariable(method = "travel", at = @At("STORE"), name = "f5")
+    @ModifyVariable(method = "travel", at = @At("STORE"), name = "f4")
     private float correctWaterDragForDepth(float oldWaterDrag) {
         // this is the init value: this only checks if the call is right after init
         if (this.isSprinting() && oldWaterDrag == 0.9F || !this.isSprinting() && oldWaterDrag == this.getWaterSlowDown()) {

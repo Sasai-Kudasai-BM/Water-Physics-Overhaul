@@ -1,9 +1,6 @@
 buildscript {
     repositories {
-        maven { 
-            name = 'forge'
-            url = 'https://files.minecraftforge.net/maven' 
-        }
+        maven { url = 'https://maven.minecraftforge.net' }
         maven {
            name = 'sponge'
            url = 'https://repo.spongepowered.org/maven'
@@ -21,18 +18,19 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
-var mc_version = '1.17.1'
-var forge_version = '37.1.1'
+var mc_version = '1.18.2'
+var forge_version = '40.2.0'
 var modid = 'wpo'
 group = 'net.skds.wpo'
-version = '0.2.0'
+version = '0.3.0'
 archivesBaseName = "water_physics_overhaul-${mc_version}"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(16)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
-    mappings channel: 'parchment', version: "2021.12.12-${mc_version}"
+    mappings channel: 'parchment', version: "2022.11.06-${mc_version}"
+//    mappings channel: 'official', version: "${mc_version}"
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -118,8 +116,8 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
-    implementation fg.deobf("skds:skds_core-0.2.0:0.2.0")
-//    implementation fg.deobf("skds:skds_core-${mc_version}-0.2.0:0.2.0")
+//    implementation fg.deobf("skds:skds_core-0.3.0:0.3.0")
+    implementation fg.deobf("skds:skds_core-${mc_version}-0.3.0:0.3.0")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
@@ -139,3 +137,12 @@ mixin {
     add sourceSets.main, "mixins.${modid}.refmap.json"
     config "mixins.${modid}.json"
 }
+
+//// uncomment to debug errors of this kind: "Recompile with -Xlint:deprecation for details"
+//allprojects {
+//    gradle.projectsEvaluated {
+//        tasks.withType(JavaCompile) {
+//            options.compilerArgs.add("-Xlint:deprecation")
+//        }
+//    }
+//}
