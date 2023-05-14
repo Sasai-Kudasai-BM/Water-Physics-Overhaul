@@ -29,7 +29,7 @@ logoFile="assets.wpo.png" #optional
 # A text field displayed in the mod UI
 credits="Thanks for me and me and... also me <3" #optional
 # A text field displayed in the mod UI
-authors="Sasai_Kudasai_BM" #optional
+authors="Sasai_Kudasai_BM, Felicis" #optional
 # The description text for the mod (multi line!) (#mandatory)
 description='''
 

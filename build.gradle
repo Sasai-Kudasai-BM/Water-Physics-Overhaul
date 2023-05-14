@@ -22,7 +22,7 @@ var mc_version = '1.18.2'
 var forge_version = '40.2.0'
 var modid = 'wpo'
 group = 'net.skds.wpo'
-version = '0.3.0'
+version = '0.3.1'
 archivesBaseName = "water_physics_overhaul-${mc_version}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
