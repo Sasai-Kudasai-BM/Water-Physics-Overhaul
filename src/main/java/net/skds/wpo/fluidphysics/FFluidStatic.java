@@ -2,25 +2,18 @@ package net.skds.wpo.fluidphysics;
 
 import java.util.*;
 
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.material.*;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.LiquidBlock;
-import net.minecraft.world.level.block.LiquidBlockContainer;
-import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.piston.PistonStructureResolver;
-import net.minecraft.world.level.block.SpongeBlock;
-import net.minecraft.world.level.block.WetSpongeBlock;
-import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.material.FlowingFluid;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.material.WaterFluid;
 import net.minecraft.world.item.MobBucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -106,6 +99,7 @@ public class FFluidStatic {
 		}
 		if (FFluidStatic.canOnlyFullCube(state0) && fluid instanceof WaterFluid) {
 			if (newlevel >= 1) {
+				// FIXME: this creates water from nothing!!!
 				return state0.setValue(BlockStateProperties.WATERLOGGED, true);
 			} else {
 				return state0.setValue(BlockStateProperties.WATERLOGGED, false);
@@ -121,6 +115,7 @@ public class FFluidStatic {
 		}
 		FluidState fs2;
 		if (newlevel >= WPOConfig.MAX_FLUID_LEVEL) {
+			// FIXME: this destroys water!!!
 			fs2 = ((FlowingFluid) fluid).getSource(false);
 		} else if (newlevel <= 0) {
 			fs2 = Fluids.EMPTY.defaultFluidState();
@@ -1431,27 +1426,42 @@ public class FFluidStatic {
 		Level w = (Level) e.getWorld();
 		BlockPos pos = e.getPos();
 		BlockState oldState = e.getBlockSnapshot().getReplacedBlock();
-		FluidState fs = oldState.getFluidState();
-		Fluid f = fs.getType();
+		FluidState oldFluidState = oldState.getFluidState();
+		Fluid oldFluid = oldFluidState.getType();
 		BlockState newState = e.getPlacedBlock();
-		Block nb = newState.getBlock();
-		if (fs.isEmpty() || nb instanceof SpongeBlock || nb instanceof WetSpongeBlock) {
+		Block newBlock = newState.getBlock();
+		// if empty => do nothing
+		if (oldFluidState.isEmpty()) {
 			return;
 		}
-		if (nb instanceof LiquidBlockContainer && !(nb instanceof SimpleWaterloggedBlock)) {
-			return;
+		// frost walker replaces water with water (idk why) => delete water (since it is created again from melting ice)
+		// idk when FrostedIceBlock is placed...
+		int frostWalkerLevel = EnchantmentHelper.getEnchantmentLevel(Enchantments.FROST_WALKER, (LivingEntity) e.getEntity());
+		if (frostWalkerLevel > 0 && newBlock == Blocks.WATER && newState.getMaterial() == Material.WATER){
+			return; // does not create water since frost walker does not trigger on partially filled water blocks
 		}
-		if (nb instanceof SimpleWaterloggedBlock && newState.getValue(BlockStateProperties.WATERLOGGED)) {
-			return;
+		// if sponge => do nothing (deletes water)
+		if (newBlock instanceof SpongeBlock || newBlock instanceof WetSpongeBlock) {
+			return; // TODO: check sponge interaction!
 		}
-		if (!canOnlyFullCube(newState) && nb instanceof IBaseWL && f.isSame(Fluids.WATER)) {
-			newState = getUpdatedState(newState, fs.getAmount(), Fluids.WATER);
-			w.setBlockAndUpdate(pos, newState);
+		// if LiquidBlockContainer but NOT BucketPickup [e.g. Kelp/Seagrass] (SimpleWaterloggedBlock is both) => do nothing
+		if (newBlock instanceof LiquidBlockContainer && !(newBlock instanceof SimpleWaterloggedBlock)) {
+			return; // TODO check if creates water from nothing!
+		}
+		// if SimpleWaterloggedBlock (can be waterlogged with full water block only) => do nothing (sets itself to waterlogged)
+		if (newBlock instanceof SimpleWaterloggedBlock && newState.getValue(BlockStateProperties.WATERLOGGED)) {
+			return; // TODO check if creates water from nothing
+		}
+		// if level waterlogged (IBaseWL mixin) => set level in new block
+		if (!canOnlyFullCube(newState) && newBlock instanceof IBaseWL && oldFluid.isSame(Fluids.WATER)) { // TODO why only water?
+			newState = getUpdatedState(newState, oldFluidState.getAmount(), Fluids.WATER);
+			w.setBlockAndUpdate(pos, newState); // FIXME: this somehow destroys the block and
 			return;
 		}
 
+		// push water out
 		FluidDisplacer displacer = new FluidDisplacer(w, e);
-		iterateFluidWay(10, e.getPos(), displacer);
+		iterateFluidWay(10, e.getPos(), displacer); // TODO make maxRange configurable
 	}
 
 	// ======================= PISTONS ======================= //
